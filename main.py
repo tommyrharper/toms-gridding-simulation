@@ -62,7 +62,8 @@ def show_uv_beam(array, ra, dec, duration_h, npix=192):
         )
         return
     bmax = np.hypot(u, v).max()
-    cell = (1.0 / bmax) / ARCSEC / 3.0
+    cell = (1.0 / bmax) / ARCSEC / 3.0            # ~3 px across the beam
+    step = max(1, u.size // 80000)                # thin big arrays for the DFT
 
 def main():
     print(len(list_arrays()), "configurations available")
