@@ -64,12 +64,10 @@ npix = 256
 cell = 0.10
 
 
-def plot_uv_coverage_and_dirty_beam(
-    u, v, info, radio_array, dec, npix=192, show_plot=False
-):
+def plot_uv_coverage_and_dirty_beam(u, v, info, npix=192, show_plot=False):
     if u.size == 0:  # source never rises for this array
         print(
-            f"'{radio_array}' never sees Dec {dec:.0f} deg above the horizon "
+            f"'{radio_array}' never sees Dec {dec_deg:.0f} deg above the horizon "
             f"(max elevation {info['max_elev_deg']:.1f} deg). Try another Dec / array."
         )
         return
@@ -114,7 +112,7 @@ def main():
 
     observations = observe(ra_deg, dec_deg, duration_h=duration_h, array=radio_array)
     u, v, w, info = observations
-    plot_uv_coverage_and_dirty_beam(u, v, info, radio_array, dec_deg, show_plot=False)
+    plot_uv_coverage_and_dirty_beam(u, v, info, show_plot=False)
     check_narrow_field_approximation(w)
 
 
