@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from simulate import dirty_beam, dirty_image
+from simulate import ARCSEC, dirty_beam, dirty_image, w_term_error
 
 
 def test_zero_baseline_gives_uniform_image_of_real_part():
@@ -51,3 +51,22 @@ def test_dirty_beam_peaks_at_phase_centre():
     centre = npix // 2
     assert beam[centre, centre] == pytest.approx(1.0, abs=1e-6)
     assert beam[centre, centre] == pytest.approx(beam.max(), abs=1e-6)
+
+
+def test_w_term_error_is_zero_for_zero_w():
+    assert w_term_error(np.array([0.0]), npix=100, cell_arcsec=1.0) == 0.0
+
+
+def test_w_term_error_matches_formula():
+    w = np.array([1000.0, -500.0])
+    npix, cell_arcsec = 100, 1.0
+    theta_edge = (npix // 2) * cell_arcsec * ARCSEC
+    expected = 2 * np.pi * np.abs(w).max() * (1.0 - np.cos(theta_edge))
+    assert w_term_error(w, npix, cell_arcsec) == pytest.approx(expected)
+
+
+def test_w_term_error_grows_with_field_of_view():
+    w = np.array([1000.0])
+    small = w_term_error(w, npix=20, cell_arcsec=1.0)
+    large = w_term_error(w, npix=2000, cell_arcsec=1.0)
+    assert large > small
