@@ -2,8 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from arrays import list_arrays
 
-RADIO = ["vla.a", "vla.b", "vla.c", "vla.d", "vlba", "ngvla-revC", "wsrt", "atca_6a", "meerkat"]
-
 # ─────────────────────────────────────────────────────────────────────────────
 #  Antenna configurations in configs/  (241 total; run list_arrays() for them all).
 #  Pick one by its file stem, e.g.  array = "vla.a".   Resolution ∝ 1 / max-baseline.
@@ -30,13 +28,25 @@ RADIO = ["vla.a", "vla.b", "vla.c", "vla.d", "vlba", "ngvla-revC", "wsrt", "atca
 #     carma.*  CARMA (decommissioned) mm ;   pdbi-a…d  Plateau de Bure / NOEMA mm
 #  Supported coord systems: XYZ (VLA/VLBA/ngVLA/WSRT/ATCA) + LOC (ALMA/ACA/MeerKAT/SMA).
 #  UTM configs (a few ALMA / CARMA) are NOT supported.
-array_w = "vla.a"
+
+RADIO = [
+    "vla.a",        # 0
+    "vla.b",        # 1
+    "vla.c",        # 2
+    "vla.d",        # 3
+    "vlba",         # 4
+    "ngvla-revC",   # 5
+    "wsrt",         # 6
+    "atca_6a",      # 7
+    "meerkat",      # 8
+]
+array_w = RADIO[0]
 
 def main():
-    print("Hello from toms-gridding-simulation!")
-    print(len(list_arrays()), 'configurations available')
-    # array_w = 
-    
+    print(len(list_arrays()), "configurations available")
+
+    print("Current antenna array: ", array_w)
+    # print()
 
 
 if __name__ == "__main__":
