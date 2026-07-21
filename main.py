@@ -44,6 +44,9 @@ RADIO = [
     "meerkat",  # 8
 ]
 
+"""
+Constants for plotting the UV coverage and the dirty beam
+"""
 radio_array = RADIO[0]
 # Right ascension degrees - celestial longitude (like longitude on Earth)
 ra_deg = 0.0
@@ -52,9 +55,18 @@ dec_deg = 34.0
 # Observation length - 5 minutes for a near-snapshot, or 1 hour. Longer tracks fill in the uv plane via earth rotation.
 duration_h = 1.0  # hours.  5 min = 5/60 ≈ 0.083 ;  1 hour = 1.0
 
+"""
+Constants for the imaging grid and w-term check
+"""
+# image size [npix*npix]
+npix = 256
+# pixel size [arcsec] (VLA-A resolution ~0.4" at 4 GHz)
+cell = 0.10
 
-def plot_uv_coverage_and_dirty_beam(array, ra, dec, duration_h, npix=192):
-    u, v, w, info = observe(ra, dec, duration_h=duration_h, array=array)
+# def get_observations()
+
+
+def plot_uv_coverage_and_dirty_beam(u, v, info, array, dec, npix=192):
     if u.size == 0:  # source never rises for this array
         print(
             f"'{array}' never sees Dec {dec:.0f} deg above the horizon "
@@ -75,19 +87,21 @@ def plot_uv_coverage_and_dirty_beam(array, ra, dec, duration_h, npix=192):
     ax[0].set_ylabel(r"v [$\lambda$]")
     ax[1].imshow(beam.T, origin="lower", cmap="cubehelix", vmin=-0.05, vmax=0.3)
     ax[1].set_title(f'dirty beam  (cell = {cell:.3f}")')
-    plt.show()
     print(f"n_vis = {info['n_vis']},  max elev = {info['max_elev_deg']:.1f} deg")
+    plt.show()
 
 
 def main():
     print(len(list_arrays()), "configurations available")
-
     print("Current antenna array: ", radio_array)
     print("Right ascension degrees: ", ra_deg)
     print("Declination degrees: ", dec_deg)
     print("Duration hours: ", duration_h)
 
-    plot_uv_coverage_and_dirty_beam(radio_array, ra_deg, dec_deg, duration_h)
+
+    observations = observe(ra_deg, dec_deg, duration_h=duration_h, array=radio_array)
+    u, v, w, info = observations
+    plot_uv_coverage_and_dirty_beam(u, v, info, radio_array, dec_deg)
 
 
 if __name__ == "__main__":
