@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 
 from arrays import list_arrays
 from observe import observe
+from simulate import ARCSEC
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  Antenna configurations in configs/  (241 total; run list_arrays() for them all).
@@ -32,15 +33,15 @@ from observe import observe
 #  UTM configs (a few ALMA / CARMA) are NOT supported.
 
 RADIO = [
-    "vla.a",        # 0
-    "vla.b",        # 1
-    "vla.c",        # 2
-    "vla.d",        # 3
-    "vlba",         # 4
-    "ngvla-revC",   # 5
-    "wsrt",         # 6
-    "atca_6a",      # 7
-    "meerkat",      # 8
+    "vla.a",  # 0
+    "vla.b",  # 1
+    "vla.c",  # 2
+    "vla.d",  # 3
+    "vlba",  # 4
+    "ngvla-revC",  # 5
+    "wsrt",  # 6
+    "atca_6a",  # 7
+    "meerkat",  # 8
 ]
 
 radio_array = RADIO[0]
@@ -49,10 +50,19 @@ ra_deg = 0.0
 # Declination degrees - celestial latitude (-90° to + 90°)
 dec_deg = 34.0
 # Observation length - 5 minutes for a near-snapshot, or 1 hour. Longer tracks fill in the uv plane via earth rotation.
-duration_h = 1.0 # hours.  5 min = 5/60 ≈ 0.083 ;  1 hour = 1.0
+duration_h = 1.0  # hours.  5 min = 5/60 ≈ 0.083 ;  1 hour = 1.0
+
 
 def show_uv_beam(array, ra, dec, duration_h, npix=192):
     u, v, w, info = observe(ra, dec, duration_h=duration_h, array=array)
+    if u.size == 0:                                   # source never rises for this array
+        print(
+            f"'{array}' never sees Dec {dec:.0f} deg above the horizon "
+            f"(max elevation {info['max_elev_deg']:.1f} deg). Try another Dec / array."
+        )
+        return
+    bmax = np.hypot(u, v).max()
+    cell = (1.0 / bmax) / ARCSEC / 3.0
 
 def main():
     print(len(list_arrays()), "configurations available")
@@ -61,6 +71,8 @@ def main():
     print("Right ascension degrees: ", ra_deg)
     print("Declination degrees: ", dec_deg)
     print("Duration hours: ", duration_h)
+
+    show_uv_beam(radio_array, ra_deg, dec_deg, duration_h)
 
 
 if __name__ == "__main__":
