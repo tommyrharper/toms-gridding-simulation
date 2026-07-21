@@ -3,7 +3,13 @@ import matplotlib.pyplot as plt
 
 from arrays import list_arrays
 from observe import observe
-from simulate import ARCSEC, dirty_beam, w_term_error, field_halfwidth_arcsec
+from simulate import (
+    ARCSEC,
+    dirty_beam,
+    w_term_error,
+    field_halfwidth_arcsec,
+    make_point_sources,
+)
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  Antenna configurations in configs/  (241 total; run list_arrays() for them all).
@@ -120,6 +126,15 @@ def main():
     check_narrow_field_approximation(w, radio_array, npix, cell)
 
     hw = field_halfwidth_arcsec(npix, cell)
+    print(f'manual coordinate range: {-hw:+.2f}" .. {hw:+.2f}" on each axis')
+
+    sky_mode = "single"
+    n_sources = 5
+    manual_sources = [(0.0, 0.0, 2.0), (5.0, -3.0, 1.0)]
+    rng = np.random.default_rng(0)
+    sources = make_point_sources(
+        sky_mode, npix, cell, n=n_sources, flux=2.0, manual=manual_sources, rng=rng
+    )
 
 
 if __name__ == "__main__":

@@ -58,3 +58,34 @@ def w_term_error(w, npix, cell_arcsec):
 def field_halfwidth_arcsec(npix, cell_arcsec, margin=0.8):
     """Max source offset from the centre (arcsec) that stays safely inside the image."""
     return margin * (npix // 2) * cell_arcsec
+
+
+def make_point_sources(
+    mode,
+    npix,
+    cell_arcsec,
+    n=1,
+    flux=2.0,
+    manual=None,
+    rng=None,
+    flux_range=(0.5, 5.0),
+    margin=0.8,
+):
+    """Build a list of point sources (l, m, flux), l/m in radians.
+
+    mode = "single" : one `flux`-Jy source at the phase centre (recommended first)
+         = "random" : `n` sources at uniform-random positions inside the field
+         = "manual" : use `manual`, a list of (d_alpha_arcsec, d_delta_arcsec, flux)
+    """
+    if mode == "single":
+        return [(0.0, 0.0, flux)]
+    if mode == "random":
+        rng = rng or np.random.default_rng()
+        hw = margin * (npix // 2) * cell_arcsec * ARCSEC
+        return [
+            (rng.uniform(-hw, hw), rng.uniform(-hw, hw), rng.uniform(*flux_range))
+            for _ in range(n)
+        ]
+    if mode == "manual":
+        return [(dl * ARCSEC, dm * ARCSEC, s) for dl, dm, s in (manual or [])]
+    raise ValueError(f"unknown sky mode: {mode!r}")
