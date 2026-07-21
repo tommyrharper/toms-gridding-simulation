@@ -66,10 +66,10 @@ cell = 0.10
 # def get_observations()
 
 
-def plot_uv_coverage_and_dirty_beam(u, v, info, array, dec, npix=192):
+def plot_uv_coverage_and_dirty_beam(u, v, info, radio_array, dec, npix=192):
     if u.size == 0:  # source never rises for this array
         print(
-            f"'{array}' never sees Dec {dec:.0f} deg above the horizon "
+            f"'{radio_array}' never sees Dec {dec:.0f} deg above the horizon "
             f"(max elevation {info['max_elev_deg']:.1f} deg). Try another Dec / array."
         )
         return
@@ -82,7 +82,7 @@ def plot_uv_coverage_and_dirty_beam(u, v, info, array, dec, npix=192):
     ax[0].scatter(u, v, s=1, alpha=0.4)
     ax[0].scatter(-u, -v, s=1, alpha=0.4)
     ax[0].set_aspect("equal")
-    ax[0].set_title(f"uv coverage — {array}")
+    ax[0].set_title(f"uv coverage — {radio_array}")
     ax[0].set_xlabel(r"u [$\lambda$]")
     ax[0].set_ylabel(r"v [$\lambda$]")
     ax[1].imshow(beam.T, origin="lower", cmap="cubehelix", vmin=-0.05, vmax=0.3)
@@ -97,7 +97,6 @@ def main():
     print("Right ascension degrees: ", ra_deg)
     print("Declination degrees: ", dec_deg)
     print("Duration hours: ", duration_h)
-
 
     observations = observe(ra_deg, dec_deg, duration_h=duration_h, array=radio_array)
     u, v, w, info = observations
