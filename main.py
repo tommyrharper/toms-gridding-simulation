@@ -6,10 +6,11 @@ from observe import observe
 from simulate import (
     ARCSEC,
     dirty_beam,
+    dirty_image,
     w_term_error,
     field_halfwidth_arcsec,
     make_point_sources,
-    point_source_vis
+    point_source_vis,
 )
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -137,7 +138,18 @@ def main():
         sky_mode, npix, cell, n=n_sources, flux=2.0, manual=manual_sources, rng=rng
     )
     V = point_source_vis(u, v, sources)
-    print(f"sky_mode={sky_mode!r}: {len(sources)} source(s), {info['n_vis']} visibilities")
+    print(
+        f"sky_mode={sky_mode!r}: {len(sources)} source(s), {info['n_vis']} visibilities"
+    )
+
+    img_dft = dirty_image(u, v, V, npix, cell)
+    print("peak flux:", img_dft.max())
+
+    plt.figure(figsize=(5.4, 4.6))
+    plt.imshow(img_dft.T, origin="lower", cmap="cubehelix")
+    plt.title("DFT dirty image (ground truth)")
+    plt.colorbar()
+    plt.show()
 
 
 if __name__ == "__main__":
