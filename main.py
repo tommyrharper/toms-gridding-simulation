@@ -104,6 +104,13 @@ def main():
     plot_uv_coverage_and_dirty_beam(u, v, info, radio_array, dec_deg, show_plot=False)
 
     dphi = w_term_error(w, npix, cell)
+    print(f"array = {radio_array}, FoV = {npix*cell:.1f}\", |w|max = {np.abs(w).max():3e} lambda")
+    if dphi < 0.1:
+        print(" -> negligible: safe to drop w (narrow-field OK)")
+    elif dphi < 1.0:
+        print(" -> marginal: fine near the centre, errors grow toward the edge")
+    else:
+        print(" -> w MATTERS: shrink npix*cell, or use w-projection")
 
 
 if __name__ == "__main__":
