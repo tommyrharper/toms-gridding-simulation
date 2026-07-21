@@ -25,3 +25,29 @@ def config_path(name):
         return cand
     raise FileNotFoundError(f"config '{name}' not found in {CONFIG_DIR}")
 
+def _read_cfg(path):
+    """Parse a .cfg -> (positions [N,3] float, coordsys, observatory)."""
+    coordsys, obs, rows = "XYZ", "", []
+    with open(path) as fh:
+        for line in fh:
+            s = line.strip()
+            if s.startswith('#'):
+                low = s.lower()
+                if "coordsys" in low:
+                    coordsys = low.split("coordsys")[1].lstrip("= ").split()[0].upper()
+                elif "observatory" in low:
+                    obs = s.split("=")[-1].strip()
+                continue
+            if not s:
+                continue
+            p = s.split()
+            rows.append([float(p[0]), float(p[1]), float(p[2])])
+        return np.array(rows), coordsys, obs
+
+def antennas_local_equatorial(name):
+    """Antennas in the local-equatorial fram [m], site latitude [rad],
+    site longitude [deg]. WOrks for any XYZ or supported-LOC config."""
+    path = config_path(name)
+    xyz, coordsys, obs = _read_cfg(path)
+
+antennas_local_equatorial("vla.a")
