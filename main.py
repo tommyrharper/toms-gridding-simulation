@@ -9,6 +9,7 @@ from simulate import (
     w_term_error,
     field_halfwidth_arcsec,
     make_point_sources,
+    point_source_vis
 )
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -135,6 +136,8 @@ def main():
     sources = make_point_sources(
         sky_mode, npix, cell, n=n_sources, flux=2.0, manual=manual_sources, rng=rng
     )
+    V = point_source_vis(u, v, sources)
+    print(f"sky_mode={sky_mode!r}: {len(sources)} source(s), {info['n_vis']} visibilities")
 
 
 if __name__ == "__main__":
