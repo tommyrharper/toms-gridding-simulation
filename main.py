@@ -52,39 +52,36 @@ RADIO = [
     "meerkat",  # 8
 ]
 
-"""
-Constants for plotting the UV coverage and the dirty beam
-"""
+# Observation
 radio_array = RADIO[0]
-# Right ascension degrees - celestial longitude (like longitude on Earth)
-ra_deg = 0.0
-# Declination degrees - celestial latitude (-90° to + 90°)
-dec_deg = 34.0
-# Observation length - 5 minutes for a near-snapshot, or 1 hour. Longer tracks fill in the uv plane via earth rotation.
-duration_h = 1.0  # hours.  5 min = 5/60 ≈ 0.083 ;  1 hour = 1.0
+ra_deg = 0.0  # right ascension [deg]
+dec_deg = 34.0  # declination [deg]
+duration_h = 1.0  # hours (5 min ≈ 0.083)
 
-"""
-Constants for the imaging grid and w-term check
-"""
-# image size [npix*npix]
+# Imaging grid (DFT dirty image / w-term check)
 npix = 256
-# pixel size [arcsec] (VLA-A resolution ~0.4" at 4 GHz)
-cell = 0.10
+cell = 0.10  # arcsec / pixel
 
 
 def require_visibilities(u, info, array, dec):
     if u.size == 0:
         raise ValueError(
-            f"'{array}' never sees Dec {dec:.0f}° above the horizon"
+            f"'{array}' never sees Dec {dec:.0f}° above the horizon "
             f"(max elev {info['max_elev_deg']:.1f}°). Try another Dec / array."
         )
 
 
+def beam_cell_arcsec(u, v):
+    """Pixel size with ~3 px across the main lobe (PSF diagnostic zoom)."""
+    bmax = np.hypot(u, v).max()
+    return (1.0 / bmax) / ARCSEC / 3.0
+
+
 def plot_uv_coverage_and_dirty_beam(u, v, info, array, dec, npix=192, show_plot=False):
+    """Uv coverage + dirty beam on a beam-matched grid (not the imaging FoV)."""
     require_visibilities(u, info, array, dec)
 
-    bmax = np.hypot(u, v).max()
-    cell = (1.0 / bmax) / ARCSEC / 3.0  # ~3 px across the beam
+    cell = beam_cell_arcsec(u, v)
     step = max(1, u.size // 80000)  # thin big arrays for the DFT
     beam = dirty_beam(u[::step], v[::step], npix, cell)
 
@@ -100,6 +97,14 @@ def plot_uv_coverage_and_dirty_beam(u, v, info, array, dec, npix=192, show_plot=
     print(f"n_vis = {info['n_vis']},  max elev = {info['max_elev_deg']:.1f} deg")
     if show_plot:
         plt.show()
+
+
+def plot_dft_dirty_image(img, show_plot=False):
+    plt.figure(figsize=(5.4, 4.6))
+    plt.imshow(img.T, origin="lower", cmap="cubehelix")
+    plt.title("DFT dirty image (ground truth)")
+    plt.colorbar()
+    plt.show()
 
 
 def check_narrow_field_approximation(w, array, npix, cell):
@@ -122,34 +127,29 @@ def main():
     print("Declination degrees: ", dec_deg)
     print("Duration hours: ", duration_h)
 
-    observations = observe(ra_deg, dec_deg, duration_h=duration_h, array=radio_array)
-    u, v, w, info = observations
+    u, v, w, info = observe(ra_deg, dec_deg, duration_h=duration_h, array=radio_array)
     plot_uv_coverage_and_dirty_beam(u, v, info, radio_array, dec_deg, show_plot=False)
     check_narrow_field_approximation(w, radio_array, npix, cell)
 
     hw = field_halfwidth_arcsec(npix, cell)
     print(f'manual coordinate range: {-hw:+.2f}" .. {hw:+.2f}" on each axis')
 
-    sky_mode = "single"
-    n_sources = 5
-    manual_sources = [(0.0, 0.0, 2.0), (5.0, -3.0, 1.0)]
-    rng = np.random.default_rng(0)
+    sky_mode = "single"  # "single" | "random" | "manual"
     sources = make_point_sources(
-        sky_mode, npix, cell, n=n_sources, flux=2.0, manual=manual_sources, rng=rng
+        sky_mode,
+        npix,
+        cell,
+        n=5,
+        flux=2.0,
+        manual=[(0.0, 0.0, 2.0), (5.0, -3.0, 1.0)],
+        rng=np.random.default_rng(0),
     )
     V = point_source_vis(u, v, sources)
-    print(
-        f"sky_mode={sky_mode!r}: {len(sources)} source(s), {info['n_vis']} visibilities"
-    )
+    print(f"sky_mode={sky_mode!r}: {len(sources)} source(s), {info['n_vis']} visibilities")
 
     img_dft = dirty_image(u, v, V, npix, cell)
     print("peak flux:", img_dft.max())
-
-    plt.figure(figsize=(5.4, 4.6))
-    plt.imshow(img_dft.T, origin="lower", cmap="cubehelix")
-    plt.title("DFT dirty image (ground truth)")
-    plt.colorbar()
-    plt.show()
+    plot_dft_dirty_image(img_dft, show_plot=True)
 
 
 if __name__ == "__main__":
