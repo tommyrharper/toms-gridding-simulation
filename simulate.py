@@ -18,3 +18,25 @@ Narrow field: w-term ignored (n ~ 1).
 import numpy as np
 
 ARCSEC = np.pi / (180.0 * 3600.0)   # radians per arcsec
+
+# ---------------------------------------------------------------------------
+# 3. Exact dirty image  (brute-force DFT)  and dirty beam
+# ---------------------------------------------------------------------------
+def dirty_image(u, v, V, npix, cell_arcsec, weights=None):
+    """Exact DFT dirty image, shape (npix, npix). cell in arcsec, image centred."""
+    u = np.asarray(u, float); v = np.asarray(v, float)
+    if weights is None:
+        weights = np.ones(u.shape)
+    cell = cell_arcsec * ARCSEC
+    x = (np.arange(npix) - npix // 2) * cell                  # pixel coords [rad]
+    pu = np.exp(2j * np.pi * np.outer(u, x))                  # (n_vis, npix)
+    pv = np.exp(2j * np.pi * np.outer(v, x))                  # (n_vis, npix)
+    M = (weights * V)[:, None] * pu                           # (n_vis, npix)
+    img = (M.T @ pv).real / weights.sum()                     # (npix, npix)
+    return img
+
+
+def dirty_beam(u, v, npix, cell_arcsec, weights=None):
+    """Dirty beam = dirty image of a unit point source at the phase centre."""
+    ones = np.ones(np.asarray(u).shape, dtype=np.complex128)
+    return dirty_image(u, v, ones, npix, cell_arcsec, weights)

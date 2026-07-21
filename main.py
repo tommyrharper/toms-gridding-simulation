@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 from arrays import list_arrays
 from observe import observe
-from simulate import ARCSEC
+from simulate import ARCSEC, dirty_beam
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  Antenna configurations in configs/  (241 total; run list_arrays() for them all).
@@ -64,6 +64,7 @@ def show_uv_beam(array, ra, dec, duration_h, npix=192):
     bmax = np.hypot(u, v).max()
     cell = (1.0 / bmax) / ARCSEC / 3.0            # ~3 px across the beam
     step = max(1, u.size // 80000)                # thin big arrays for the DFT
+    beam = dirty_beam(u[::step], v[::step], npix, cell)
 
 def main():
     print(len(list_arrays()), "configurations available")
