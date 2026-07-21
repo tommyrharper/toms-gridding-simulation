@@ -53,18 +53,31 @@ dec_deg = 34.0
 duration_h = 1.0  # hours.  5 min = 5/60 ≈ 0.083 ;  1 hour = 1.0
 
 
-def show_uv_beam(array, ra, dec, duration_h, npix=192):
+def plot_uv_coverage_and_dirty_beam(array, ra, dec, duration_h, npix=192):
     u, v, w, info = observe(ra, dec, duration_h=duration_h, array=array)
-    if u.size == 0:                                   # source never rises for this array
+    if u.size == 0:  # source never rises for this array
         print(
             f"'{array}' never sees Dec {dec:.0f} deg above the horizon "
             f"(max elevation {info['max_elev_deg']:.1f} deg). Try another Dec / array."
         )
         return
     bmax = np.hypot(u, v).max()
-    cell = (1.0 / bmax) / ARCSEC / 3.0            # ~3 px across the beam
-    step = max(1, u.size // 80000)                # thin big arrays for the DFT
+    cell = (1.0 / bmax) / ARCSEC / 3.0  # ~3 px across the beam
+    step = max(1, u.size // 80000)  # thin big arrays for the DFT
     beam = dirty_beam(u[::step], v[::step], npix, cell)
+
+    fig, ax = plt.subplots(1, 2, figsize=(11, 4.6))
+    ax[0].scatter(u, v, s=1, alpha=0.4)
+    ax[0].scatter(-u, -v, s=1, alpha=0.4)
+    ax[0].set_aspect("equal")
+    ax[0].set_title(f"uv coverage — {array}")
+    ax[0].set_xlabel(r"u [$\lambda$]")
+    ax[0].set_ylabel(r"v [$\lambda$]")
+    ax[1].imshow(beam.T, origin="lower", cmap="cubehelix", vmin=-0.05, vmax=0.3)
+    ax[1].set_title(f'dirty beam  (cell = {cell:.3f}")')
+    plt.show()
+    print(f"n_vis = {info['n_vis']},  max elev = {info['max_elev_deg']:.1f} deg")
+
 
 def main():
     print(len(list_arrays()), "configurations available")
@@ -74,7 +87,7 @@ def main():
     print("Declination degrees: ", dec_deg)
     print("Duration hours: ", duration_h)
 
-    show_uv_beam(radio_array, ra_deg, dec_deg, duration_h)
+    plot_uv_coverage_and_dirty_beam(radio_array, ra_deg, dec_deg, duration_h)
 
 
 if __name__ == "__main__":
