@@ -63,10 +63,10 @@ npix = 256
 # pixel size [arcsec] (VLA-A resolution ~0.4" at 4 GHz)
 cell = 0.10
 
-# def get_observations()
 
-
-def plot_uv_coverage_and_dirty_beam(u, v, info, radio_array, dec, npix=192, show_plot=False):
+def plot_uv_coverage_and_dirty_beam(
+    u, v, info, radio_array, dec, npix=192, show_plot=False
+):
     if u.size == 0:  # source never rises for this array
         print(
             f"'{radio_array}' never sees Dec {dec:.0f} deg above the horizon "
@@ -92,6 +92,19 @@ def plot_uv_coverage_and_dirty_beam(u, v, info, radio_array, dec, npix=192, show
         plt.show()
 
 
+def check_narrow_field_approximation(w):
+    dphi = w_term_error(w, npix, cell)
+    print(
+        f'array = {radio_array}, FoV = {npix * cell:.1f}", |w|max = {np.abs(w).max():3e} lambda'
+    )
+    if dphi < 0.1:
+        print(" -> negligible: safe to drop w (narrow-field OK)")
+    elif dphi < 1.0:
+        print(" -> marginal: fine near the centre, errors grow toward the edge")
+    else:
+        print(" -> w MATTERS: shrink npix*cell, or use w-projection")
+
+
 def main():
     print(len(list_arrays()), "configurations available")
     print("Current antenna array: ", radio_array)
@@ -102,15 +115,7 @@ def main():
     observations = observe(ra_deg, dec_deg, duration_h=duration_h, array=radio_array)
     u, v, w, info = observations
     plot_uv_coverage_and_dirty_beam(u, v, info, radio_array, dec_deg, show_plot=False)
-
-    dphi = w_term_error(w, npix, cell)
-    print(f"array = {radio_array}, FoV = {npix*cell:.1f}\", |w|max = {np.abs(w).max():3e} lambda")
-    if dphi < 0.1:
-        print(" -> negligible: safe to drop w (narrow-field OK)")
-    elif dphi < 1.0:
-        print(" -> marginal: fine near the centre, errors grow toward the edge")
-    else:
-        print(" -> w MATTERS: shrink npix*cell, or use w-projection")
+    check_narrow_field_approximation(w)
 
 
 if __name__ == "__main__":
