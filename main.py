@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
+
 from arrays import list_arrays
+from observe import observe
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  Antenna configurations in configs/  (241 total; run list_arrays() for them all).
@@ -40,6 +42,7 @@ RADIO = [
     "atca_6a",      # 7
     "meerkat",      # 8
 ]
+
 radio_array = RADIO[0]
 # Right ascension degrees - celestial longitude (like longitude on Earth)
 ra_deg = 0.0
@@ -47,6 +50,9 @@ ra_deg = 0.0
 dec_deg = 34.0
 # Observation length - 5 minutes for a near-snapshot, or 1 hour. Longer tracks fill in the uv plane via earth rotation.
 duration_h = 1.0 # hours.  5 min = 5/60 ≈ 0.083 ;  1 hour = 1.0
+
+def show_uv_beam(array, ra, dec, duration_h, npix=192):
+    u, v, w, info = observe(ra, dec, duration_h=duration_h, array=array)
 
 def main():
     print(len(list_arrays()), "configurations available")
