@@ -50,3 +50,11 @@ def w_term_error(w, npix, cell_arcsec):
     |dphi| = 2 pi |w|max (1 - cos theta_edge). << 1 rad => w is safe to ingore."""
     theta_edge = (npix // 2) * cell_arcsec * ARCSEC
     return 2 * np.pi * np.abs(w).max() * (1.0 - np.cos(theta_edge))
+
+
+# ---------------------------------------------------------------------------
+# 1. Sky  ->  analytic visibility function  V_true(u,v)
+# ---------------------------------------------------------------------------
+def field_halfwidth_arcsec(npix, cell_arcsec, margin=0.8):
+    """Max source offset from the centre (arcsec) that stays safely inside the image."""
+    return margin * (npix // 2) * cell_arcsec

@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 from arrays import list_arrays
 from observe import observe
-from simulate import ARCSEC, dirty_beam, w_term_error
+from simulate import ARCSEC, dirty_beam, w_term_error, field_halfwidth_arcsec
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  Antenna configurations in configs/  (241 total; run list_arrays() for them all).
@@ -118,6 +118,8 @@ def main():
     u, v, w, info = observations
     plot_uv_coverage_and_dirty_beam(u, v, info, radio_array, dec_deg, show_plot=False)
     check_narrow_field_approximation(w, radio_array, npix, cell)
+
+    hw = field_halfwidth_arcsec(npix, cell)
 
 
 if __name__ == "__main__":
