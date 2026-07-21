@@ -40,13 +40,18 @@ RADIO = [
     "atca_6a",      # 7
     "meerkat",      # 8
 ]
-array_w = RADIO[0]
+radio_array = RADIO[0]
+# Right ascension degrees - celestial longitude (like longitude on Earth)
+ra_deg = 0.0
+# Declination degrees - celestial latitude (-90° to + 90°)
+dec_deg = 34.0
 
 def main():
     print(len(list_arrays()), "configurations available")
 
-    print("Current antenna array: ", array_w)
-    # print()
+    print("Current antenna array: ", radio_array)
+    print("Right ascension degrees: ", ra_deg)
+    print("Declination degrees: ", dec_deg)
 
 
 if __name__ == "__main__":
