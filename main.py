@@ -64,13 +64,17 @@ npix = 256
 cell = 0.10
 
 
-def plot_uv_coverage_and_dirty_beam(u, v, info, npix=192, show_plot=False):
-    if u.size == 0:  # source never rises for this array
-        print(
-            f"'{radio_array}' never sees Dec {dec_deg:.0f} deg above the horizon "
-            f"(max elevation {info['max_elev_deg']:.1f} deg). Try another Dec / array."
+def require_visibilities(u, info, array, dec):
+    if u.size == 0:
+        raise ValueError(
+            f"'{array}' never sees Dec {dec:.0f}° above the horizon"
+            f"(max elev {info['max_elev_deg']:.1f}°). Try another Dec / array."
         )
-        return
+
+
+def plot_uv_coverage_and_dirty_beam(u, v, info, array, dec, npix=192, show_plot=False):
+    require_visibilities(u, info, array, dec)
+
     bmax = np.hypot(u, v).max()
     cell = (1.0 / bmax) / ARCSEC / 3.0  # ~3 px across the beam
     step = max(1, u.size // 80000)  # thin big arrays for the DFT
@@ -80,7 +84,7 @@ def plot_uv_coverage_and_dirty_beam(u, v, info, npix=192, show_plot=False):
     ax[0].scatter(u, v, s=1, alpha=0.4)
     ax[0].scatter(-u, -v, s=1, alpha=0.4)
     ax[0].set_aspect("equal")
-    ax[0].set_title(f"uv coverage — {radio_array}")
+    ax[0].set_title(f"uv coverage — {array}")
     ax[0].set_xlabel(r"u [$\lambda$]")
     ax[0].set_ylabel(r"v [$\lambda$]")
     ax[1].imshow(beam.T, origin="lower", cmap="cubehelix", vmin=-0.05, vmax=0.3)
@@ -90,10 +94,10 @@ def plot_uv_coverage_and_dirty_beam(u, v, info, npix=192, show_plot=False):
         plt.show()
 
 
-def check_narrow_field_approximation(w):
+def check_narrow_field_approximation(w, array, npix, cell):
     dphi = w_term_error(w, npix, cell)
     print(
-        f'array = {radio_array}, FoV = {npix * cell:.1f}", |w|max = {np.abs(w).max():3e} lambda'
+        f'array = {array}, FoV = {npix * cell:.1f}", |w|max = {np.abs(w).max():3e} lambda'
     )
     if dphi < 0.1:
         print(" -> negligible: safe to drop w (narrow-field OK)")
@@ -112,8 +116,8 @@ def main():
 
     observations = observe(ra_deg, dec_deg, duration_h=duration_h, array=radio_array)
     u, v, w, info = observations
-    plot_uv_coverage_and_dirty_beam(u, v, info, show_plot=False)
-    check_narrow_field_approximation(w)
+    plot_uv_coverage_and_dirty_beam(u, v, info, radio_array, dec_deg, show_plot=False)
+    check_narrow_field_approximation(w, radio_array, npix, cell)
 
 
 if __name__ == "__main__":
