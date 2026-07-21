@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 from arrays import list_arrays
 from observe import observe
-from simulate import ARCSEC, dirty_beam
+from simulate import ARCSEC, dirty_beam, w_term_error
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  Antenna configurations in configs/  (241 total; run list_arrays() for them all).
@@ -66,7 +66,7 @@ cell = 0.10
 # def get_observations()
 
 
-def plot_uv_coverage_and_dirty_beam(u, v, info, radio_array, dec, npix=192):
+def plot_uv_coverage_and_dirty_beam(u, v, info, radio_array, dec, npix=192, show_plot=False):
     if u.size == 0:  # source never rises for this array
         print(
             f"'{radio_array}' never sees Dec {dec:.0f} deg above the horizon "
@@ -88,7 +88,8 @@ def plot_uv_coverage_and_dirty_beam(u, v, info, radio_array, dec, npix=192):
     ax[1].imshow(beam.T, origin="lower", cmap="cubehelix", vmin=-0.05, vmax=0.3)
     ax[1].set_title(f'dirty beam  (cell = {cell:.3f}")')
     print(f"n_vis = {info['n_vis']},  max elev = {info['max_elev_deg']:.1f} deg")
-    plt.show()
+    if show_plot:
+        plt.show()
 
 
 def main():
@@ -100,7 +101,9 @@ def main():
 
     observations = observe(ra_deg, dec_deg, duration_h=duration_h, array=radio_array)
     u, v, w, info = observations
-    plot_uv_coverage_and_dirty_beam(u, v, info, radio_array, dec_deg)
+    plot_uv_coverage_and_dirty_beam(u, v, info, radio_array, dec_deg, show_plot=False)
+
+    dphi = w_term_error(w, npix, cell)
 
 
 if __name__ == "__main__":
