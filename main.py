@@ -45,6 +45,8 @@ radio_array = RADIO[0]
 ra_deg = 0.0
 # Declination degrees - celestial latitude (-90° to + 90°)
 dec_deg = 34.0
+# Observation length - 5 minutes for a near-snapshot, or 1 hour. Longer tracks fill in the uv plane via earth rotation.
+duration_h = 1.0 # hours.  5 min = 5/60 ≈ 0.083 ;  1 hour = 1.0
 
 def main():
     print(len(list_arrays()), "configurations available")
@@ -52,6 +54,7 @@ def main():
     print("Current antenna array: ", radio_array)
     print("Right ascension degrees: ", ra_deg)
     print("Declination degrees: ", dec_deg)
+    print("Duration hours: ", duration_h)
 
 
 if __name__ == "__main__":
