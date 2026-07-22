@@ -18,6 +18,7 @@ from typing import Callable
 
 import numpy as np
 import numpy.typing as npt
+import math
 from scipy.special import pro_ang1
 
 from .simulate import ARCSEC
@@ -96,7 +97,99 @@ def grid_visibilities(
     #                 - grid[i, j] += V[k] * kernel(nu, W) * kernel(nv, W)
     # 5. Return the grid.
 
+    # Convert inputs ot NumPy arrays so indexing behaves consistently
+    u = np.asarray(u, dtype=np.float64)
+    v = np.asarray(v, dtype=np.float64)
+    V = np.asarray(V, dtype=np.float64)
+
+    if u.ndim != 1 or v.ndim != 1 or V.ndim != 1:
+        raise ValueError("u, v, and V must be one-dimensional arrays")
+
+    if not (len(u) == len(v) == len(V)):
+        raise ValueError("u, v, and V must have the same length")
+
+    if npix <= 0:
+        raise ValueError("npix must be positive")
+
+    if cell <= 0:
+        raise ValueError("cell must be positive")
+
+    if W <= 0:
+        raise ValueError("W must be positive")
+
+    # Create the empty regular uv grid
     G = np.zeros((npix, npix), dtype=np.complex128)
+
+    # Empty inputs produce an empty grid
+    if len(V) == 0:
+        return G
+
+    pixel_size_radians = cell * ARCSEC
+    # image width is also known as the FoV or field of view
+    fov = npix * pixel_size_radians
+    # but we are in inverse space
+    du = 1.0 / fov
+    # get centre element (index representing u = 0, v =0)
+    c = npix // 2
+    # half-wdith of the kernel support in grid-cell units
+    half_width = W / 2.0
+
+    # process each visibility sample
+    for k, vis in enumerate(V):
+        u_coord = u[k]
+        v_coord = v[k]
+
+        # covert physical uv coordinates into continuous array-index coordinates
+        uc = (u_coord / du) + c
+        vc = (v_coord / du) + c
+
+        # construct conservative integer bounds around the visibility
+        i_start = math.floor(uc - half_width)
+        i_stop = math.ceil(uc + half_width)
+
+        j_start = math.floor(vc - half_width)
+        j_stop = math.ceil(vc + half_width)
+
+        # for each visibility, visit nearby regular uv-grid points
+        for i in range(i_start, i_stop + 1):
+            if i < 0 or i >= npix:
+                continue
+
+            # signed distance from point i to the visibility
+            nu = uc - i
+
+            # Kernel is zero outside its support
+            if abs(nu) >= half_width:
+                continue
+
+            # get kernel weight for this dist from centre
+            weight_u = kernel(nu, W=W)
+
+            for j in range(j_start, j_stop + 1):
+                if j < 0 or j >= npix:
+                    continue
+
+            # signed distance from point j to the visibility
+            nv = vc - j
+
+            # distance must be within the kernel
+            if abs(nv) >= half_width:
+                continue
+
+            # get kernel weight for this dist from centre
+            weight_v = kernel(nv, W=W)
+
+            # deposit this visibility onto the regular grid
+            G[i, j] += vis * weight_u * weight_v
+
+    return G
+
+
+
+    # Your TDD path (one test at a time — see the plan):
+    # 1. zeros grid  2. empty early-return  3. hardcode G[c,c]=V[0]
+    # 4. kernel at origin  5. du + shift  6. tent neighbours
+    # 7. loop visibilities  8. no normalize  9. clip bounds  10. spheroidal
     return G
     raise NotImplementedError("implement convolutional gridding (TDD)")
 
@@ -111,6 +204,5 @@ def dirty_image_fft(
     corr_kind: str,
     W: float = 6,
 ) -> None:
-    print('u', u)
     grid = grid_visibilities(u, v, V, npix, cell, kernel, W)
     return
