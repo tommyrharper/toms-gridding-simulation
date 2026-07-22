@@ -20,3 +20,6 @@ wheels/
 data/*
 !data/.gitkeep
 runs/
+
+# Jupyter
+.ipynb_checkpoints/

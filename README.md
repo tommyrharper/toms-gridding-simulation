@@ -94,3 +94,18 @@ For next meeting - do time sensitive literature review:
 Viable paper could be:
 - Here is a benchmarking system for all the methods
 - critique of current ml methods => validation
+
+## Notebooks
+
+`.ipynb` files are committed with their outputs stripped ([nbstripout](https://github.com/kynan/nbstripout)),
+and diffed/merged cell-by-cell instead of as raw JSON ([nbdime](https://nbdime.readthedocs.io/)).
+Both are git filters/drivers that only activate once configured locally, so
+run this once per clone (after `uv sync`):
+
+```sh
+uv run scripts/setup_notebooks.py
+```
+
+After that, `git add`/commit automatically clears cell outputs and execution
+counts from any `.ipynb` you stage, and `git diff` / merge conflicts on
+notebooks are shown cell-by-cell rather than as opaque JSON.

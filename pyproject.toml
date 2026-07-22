@@ -23,6 +23,8 @@ gridding_sim = ["py.typed"]
 
 [dependency-groups]
 dev = [
+    "nbdime>=4.0.4",
+    "nbstripout>=0.9.1",
     "pytest>=9.1.1",
 ]
 demo = [
