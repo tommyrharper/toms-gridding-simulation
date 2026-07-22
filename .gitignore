@@ -9,6 +9,9 @@ wheels/
 # Virtual environments
 .venv
 
+# Personal setup
+.vscode/
+
 # Generated artifacts
 data/*
 !data/.gitkeep
