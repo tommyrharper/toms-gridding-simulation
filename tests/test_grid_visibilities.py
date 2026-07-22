@@ -174,3 +174,146 @@ def test_spheroidal_at_origin_peaks_at_centre_and_respects_support():
     assert abs(grid[c, c + 4]) == pytest.approx(0.0, abs=1e-12)
     # Inside support should be nonzero
     assert abs(grid[c + 1, c]) > 0.0
+
+
+# ---------------------------------------------------------------------------
+# Independent brute-force reference: for every (i, j) in the grid — not just
+# a bounding box around each visibility — accumulate V[k] * kernel(nu) *
+# kernel(nv) directly from the documented contract. This exercises the
+# floor/ceil bounding-box optimisation in grid_visibilities against a
+# structurally different implementation of the same contract.
+# ---------------------------------------------------------------------------
+def _reference_grid(u, v, V, npix, cell, kernel, W=6):
+    du = _du(npix, cell)
+    c = npix // 2
+    G = np.zeros((npix, npix), dtype=np.complex128)
+    for k in range(len(V)):
+        for i in range(npix):
+            nu = u[k] / du - (i - c)
+            wu = kernel(nu, W=W)
+            for j in range(npix):
+                nv = v[k] / du - (j - c)
+                wv = kernel(nv, W=W)
+                G[i, j] += V[k] * wu * wv
+    return G
+
+
+@pytest.mark.parametrize("npix", [7, 8, 9, 12, 13])
+@pytest.mark.parametrize("cell", [0.05, 0.3, 1.0, 2.5])
+@pytest.mark.parametrize(
+    "kernel_name,kernel", [("box", _box_kernel), ("tent", _tent_kernel), ("spheroidal", spheroidal_gridder)]
+)
+def test_matches_brute_force_reference_for_random_visibilities(npix, cell, kernel_name, kernel):
+    """Randomised visibilities (including ones straddling/outside the grid)
+    must match a from-scratch reference across grid sizes, cell sizes,
+    kernel supports, and parities."""
+    rng = np.random.default_rng(hash((npix, cell, kernel_name)) & 0xFFFFFFFF)
+    du = _du(npix, cell)
+    for W in (2, 4, 6, 7):
+        n_vis = rng.integers(1, 8)
+        u = rng.uniform(-npix, npix, n_vis) * du
+        v = rng.uniform(-npix, npix, n_vis) * du
+        V = rng.normal(size=n_vis) + 1j * rng.normal(size=n_vis)
+        got = grid_visibilities(u, v, V, npix, cell, kernel, W=W)
+        ref = _reference_grid(u, v, V, npix, cell, kernel, W=W)
+        assert np.allclose(got, ref, atol=1e-8)
+
+
+@pytest.mark.parametrize("npix", [8, 9])
+def test_visibility_exactly_at_edge_index_matches_reference(npix):
+    """Footprint straddling the array boundary — the in-bounds half of the
+    kernel support must still deposit correctly (no off-by-one at i=0/npix-1)."""
+    du = _du(npix, 1.0)
+    c = npix // 2
+    for edge_i in (0, npix - 1):
+        u = np.array([(edge_i - c) * du])
+        v = np.array([0.0])
+        V = np.array([1.0 + 0.0j])
+        got = grid_visibilities(u, v, V, npix, 1.0, _box_kernel, W=6)
+        ref = _reference_grid(u, v, V, npix, 1.0, _box_kernel, W=6)
+        assert np.allclose(got, ref)
+        assert got[edge_i, c] == pytest.approx(1.0 + 0.0j)
+
+
+def test_visibility_far_negative_outside_grid_does_not_wrap():
+    """Mirror of the existing far-outside test, on the negative side."""
+    npix, cell = 8, 1.0
+    du = _du(npix, cell)
+    u = np.array([-(npix + 50) * du])
+    v = np.array([0.0])
+    V = np.array([1.0 + 0.0j])
+    grid = grid_visibilities(u, v, V, npix=npix, cell=cell, kernel=_box_kernel, W=6)
+    assert np.allclose(grid, 0.0)
+
+
+def test_overlapping_visibilities_accumulate_on_shared_pixels():
+    """Two visibilities whose kernel footprints both cover the same pixel
+    must sum there, not overwrite one another."""
+    npix, cell = 9, 1.0
+    c = npix // 2
+    u = np.array([0.0, 0.0])
+    v = np.array([0.0, 0.0])  # identical position -> full overlap
+    V = np.array([1.0 + 2.0j, 3.0 - 1.0j])
+    grid = grid_visibilities(u, v, V, npix, cell, _box_kernel, W=6)
+    assert grid[c, c] == pytest.approx(4.0 + 1.0j)
+
+
+# ---------------------------------------------------------------------------
+# Input validation contract
+# ---------------------------------------------------------------------------
+@pytest.mark.parametrize(
+    "kwargs,match",
+    [
+        (dict(u=np.array([[0.0]]), v=np.array([0.0]), V=np.array([1.0 + 0j])), "one-dimensional"),
+        (dict(u=np.array([0.0, 1.0]), v=np.array([0.0]), V=np.array([1.0 + 0j])), "same length"),
+        (dict(npix=0), "npix must be positive"),
+        (dict(npix=-3), "npix must be positive"),
+        (dict(cell=0.0), "cell must be positive"),
+        (dict(cell=-1.0), "cell must be positive"),
+        (dict(W=0), "W must be positive"),
+        (dict(W=-2), "W must be positive"),
+    ],
+)
+def test_invalid_inputs_raise_value_error(kwargs, match):
+    defaults = dict(
+        u=np.array([0.0]), v=np.array([0.0]), V=np.array([1.0 + 0j]), npix=8, cell=1.0, W=6
+    )
+    args = {**defaults, **kwargs}
+    with pytest.raises(ValueError, match=match):
+        grid_visibilities(args["u"], args["v"], args["V"], args["npix"], args["cell"], _box_kernel, W=args["W"])
+
+
+# ---------------------------------------------------------------------------
+# Robustness: a kernel returning a non-0-d array (e.g. shape (1,)) used to
+# crash `G[i, j] += ...` with "only 0-dimensional arrays can be converted to
+# Python scalars" — grid_visibilities now coerces kernel output to a scalar.
+# ---------------------------------------------------------------------------
+def test_kernel_returning_one_element_array_does_not_crash():
+    def _box_kernel_1d_output(nu, W=6):
+        val = 1.0 if abs(float(nu)) < 0.5 else 0.0
+        return np.array([val])  # shape (1,), not 0-d
+
+    npix = 8
+    c = npix // 2
+    grid = grid_visibilities(
+        np.array([0.0]), np.array([0.0]), np.array([1.0 + 0.0j]), npix, 1.0, _box_kernel_1d_output, W=6
+    )
+    assert grid[c, c] == pytest.approx(1.0 + 0.0j)
+
+
+# ---------------------------------------------------------------------------
+# dtype / input-type robustness
+# ---------------------------------------------------------------------------
+def test_accepts_plain_python_lists():
+    grid = grid_visibilities([0.0, 1.0], [0.0, 0.0], [1 + 0j, 2 + 0j], npix=8, cell=1.0, kernel=_box_kernel)
+    assert np.iscomplexobj(grid)
+    assert grid.sum() == pytest.approx(3 + 0j)
+
+
+def test_real_valued_visibilities_are_treated_as_zero_imaginary():
+    npix = 8
+    c = npix // 2
+    grid = grid_visibilities(
+        np.array([0.0]), np.array([0.0]), np.array([3.0]), npix, 1.0, _box_kernel
+    )
+    assert grid[c, c] == pytest.approx(3.0 + 0.0j)
