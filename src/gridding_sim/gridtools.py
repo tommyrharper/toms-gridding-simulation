@@ -83,19 +83,6 @@ def grid_visibilities(
 
         Skip (i, j) outside the array (no periodic wrap).
     """
-    # Pseudocode for grid_visibilities:
-    #
-    # 1. Create a zeroed complex grid of shape (npix, npix).
-    # 2. If u, v, V are empty: return zero grid.
-    # 3. Compute du = 1 / (npix * cell * ARCSEC)  # uv cell size in lambda units.
-    # 4. For each visibility:
-    #     - Find the centre position (uc, vc) in pixel units: uc = u[k]/du + npix//2, etc.
-    #     - For i in range of grid pixels within kernel support W of uc:
-    #         - For j in range within W of vc:
-    #             - Compute nu, nv (distance in uv cell units).
-    #             - If i, j in-bounds:
-    #                 - grid[i, j] += V[k] * kernel(nu, W) * kernel(nv, W)
-    # 5. Return the grid.
 
     # Convert inputs ot NumPy arrays so indexing behaves consistently
     u = np.asarray(u, dtype=np.float64)
@@ -168,19 +155,21 @@ def grid_visibilities(
             for j in range(j_start, j_stop + 1):
                 if j < 0 or j >= npix:
                     continue
+                # signed distance from point j to the visibility
+                nv = vc - j
 
-            # signed distance from point j to the visibility
-            nv = vc - j
+                # distance must be within the kernel
+                if abs(nv) >= half_width:
+                    continue
 
-            # distance must be within the kernel
-            if abs(nv) >= half_width:
-                continue
+                # get kernel weight for this dist from centre
+                weight_v = kernel(nv, W=W)
 
-            # get kernel weight for this dist from centre
-            weight_v = kernel(nv, W=W)
+                # convolved visibility pixel
+                convolved_visibility_pixel = vis * weight_u * weight_v
 
-            # deposit this visibility onto the regular grid
-            G[i, j] += vis * weight_u * weight_v
+                # deposit this visibility onto the regular grid
+                G[i, j] += convolved_visibility_pixel
 
     return G
 
