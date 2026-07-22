@@ -313,7 +313,7 @@ def dirty_image_fft(
     V = np.asarray(V, dtype=np.complex128)
 
     if len(V) == 0:
-        return np.zeros((npix, npix), dtypes=np.complex128)
+        return np.zeros((npix, npix), dtype=np.float64)
 
     grid = grid_visibilities(u, v, V, npix, cell, kernel, W)
 
