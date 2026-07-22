@@ -183,6 +183,14 @@ def dirty_image_fft(
     kernel: Callable[..., npt.NDArray[np.float64]],
     corr_kind: str,
     W: float = 6,
-) -> None:
+) -> npt.NDArray[np.float64]:
+    V = np.asarray(V, dtype=np.complex128)
+
+    if len(V) == 0:
+        return np.zeros((npix, npix), dtypes=np.complex128)
+
     grid = grid_visibilities(u, v, V, npix, cell, kernel, W)
-    return
+
+    image = np.zeros((npix, npix), dtype=np.float64)
+
+    return image
