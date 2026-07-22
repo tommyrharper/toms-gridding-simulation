@@ -1,6 +1,6 @@
 """TDD tests for ``grid_visibilities``.
 
-Implement the function in ``gridding_sim.gridtools`` until these pass.
+Implement the function in ``gridding_sim.imaging`` until these pass.
 A simple box / tent kernel is injected in most tests so you are not
 debugging the spheroidal at the same time as the deposition loop.
 """
@@ -8,7 +8,8 @@ debugging the spheroidal at the same time as the deposition loop.
 import numpy as np
 import pytest
 
-from gridding_sim.gridtools import grid_visibilities, spheroidal_gridder
+from gridding_sim.gridtools import spheroidal_gridder
+from gridding_sim.imaging import grid_visibilities
 from gridding_sim.simulate import ARCSEC
 
 

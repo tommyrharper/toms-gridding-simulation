@@ -18,7 +18,8 @@ from gridding_sim.diagnostics import (
     print_residual_stats,
 )
 from gridding_sim.plotting import plot_demo_summary
-from gridding_sim.gridtools import spheroidal_gridder, dirty_image_fft, least_misfit_gridder
+from gridding_sim.gridtools import spheroidal_gridder, least_misfit_gridder
+from gridding_sim.imaging import dirty_image_fft
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  Antenna configurations in configs/  (241 total; run list_arrays() for them all).
@@ -100,7 +101,7 @@ def main() -> None:
 
     img_dft = dirty_image(u, v, V, npix, cell)
     img_sph = dirty_image_fft(u, v, V, npix, cell, spheroidal_gridder, "spheroidal")
-    img_lm = dirty_image_fft(u, v, V, npix, cell, least_misfit_gridder, "least-misfit")
+    img_lm = dirty_image_fft(u, v, V, npix, cell, least_misfit_gridder, "least_misfit")
     print("DFT peak flux:", img_dft.max())
 
     beam, beam_cell = make_dirty_beam(u, v)

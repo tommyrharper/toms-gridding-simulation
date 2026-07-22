@@ -13,11 +13,8 @@ not exercised here.
 import numpy as np
 import pytest
 
-from gridding_sim.gridtools import (
-    dirty_image_fft,
-    least_misfit_gridder,
-    spheroidal_gridder,
-)
+from gridding_sim.gridtools import least_misfit_gridder, spheroidal_gridder
+from gridding_sim.imaging import dirty_image_fft
 from gridding_sim.simulate import ARCSEC, dirty_image, point_source_vis
 
 

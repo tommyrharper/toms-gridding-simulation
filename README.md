@@ -14,13 +14,13 @@ uv sync
 
 | Path | Role |
 |---|---|
-| `src/gridding_sim/` | Library: arrays, observe, simulate (DFT ground truth), gridtools, diagnostics, plotting |
+| `src/gridding_sim/` | Library: arrays, observe, simulate (DFT ground truth), imaging (grid+FFT), gridtools (kernels), diagnostics, plotting |
 | `configs/` | Antenna array `.cfg` files |
 | `scripts/` | Runnable demos / CLIs (`demo_observe.py`) |
 | `data/` | Generated datasets (gitignored) |
 | `tests/` | Pytest suite |
 
-**Later (not created yet):** classical `imaging/`, `metrics/`, `ml/`, `benchmarks/`, `runs/`.
+**Later (not created yet):** `metrics/`, `ml/`, `benchmarks/`, `runs/`.
 
 ## Run the demo
 
