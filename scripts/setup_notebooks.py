@@ -5,10 +5,15 @@ Configures two things:
   - nbdime: diffs/merges `.ipynb` cell-by-cell instead of as raw JSON.
 
 `.gitattributes` is already tracked with the right `filter=`/`diff=`/`merge=`
-rules, so neither installer is passed `--attributes` here: nbstripout's own
-`--attributes` flag would blindly re-append a conflicting `*.ipynb diff=ipynb`
-line on every re-run (later lines win, silently disabling the nbdime diff
-driver). Both installers also register their commands either as a bare name
+rules, so nbstripout is never invoked with `--install`: with no `--attributes`
+argument that command defaults to writing straight into `.git/info/attributes`
+(a per-clone, untracked file that outranks the tracked `.gitattributes`), and
+it unconditionally adds a conflicting `*.ipynb diff=ipynb` line there, silently
+disabling the nbdime diff driver. It's also redundant: the only thing it would
+add beyond what's below is that same attributes line. `nbdime config-git
+--enable` is safe to keep since it only touches the tracked `.gitattributes`
+and no-ops when `diff=jupyternotebook` is already present. Both tools'
+installers also register their commands either as a bare name
 (`git-nbdiffdriver`, only found if the venv's bin/ happens to be on PATH) or
 as an absolute path into *this* venv (breaks the moment this checkout moves
 or another worktree/clone uses a different one). Repointing everything
@@ -28,7 +33,6 @@ def git_config(key: str, value: str) -> None:
 
 
 def main() -> None:
-    run("uv", "run", "nbstripout", "--install")
     run("uv", "run", "nbdime", "config-git", "--enable")
 
     git_config("filter.nbstripout.clean", "uv run nbstripout")
