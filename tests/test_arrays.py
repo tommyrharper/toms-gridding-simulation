@@ -1,4 +1,4 @@
-from arrays import CONFIG_DIR, list_arrays
+from gridding_sim.arrays import CONFIG_DIR, list_arrays
 
 
 def test_returns_sorted_list_of_config_stems():

@@ -1,10 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from gridtools import spheroidal_gridder
-from arrays import list_arrays
-from observe import observe
-from simulate import (
+import _repo_path  # noqa: F401  — put src/ on path before package imports
+
+from gridding_sim.gridtools import spheroidal_gridder
+from gridding_sim.arrays import list_arrays
+from gridding_sim.observe import observe
+from gridding_sim.simulate import (
     ARCSEC,
     dirty_beam,
     dirty_image,
@@ -127,8 +129,10 @@ def grid_visibilities(u, v, V, npix, cell, kernel, W=6):
 
     return
 
+
 def dirty_image_fft():
     return
+
 
 def main():
     print(len(list_arrays()), "configurations available")
@@ -159,9 +163,10 @@ def main():
 
     img_dft = dirty_image(u, v, V, npix, cell)
     print("peak flux:", img_dft.max())
-    plot_dft_dirty_image(img_dft, show_plot=False)
+    plot_dft_dirty_image(img_dft, show_plot=True)
 
-    img_sph = dirty_image_fft(u, v, V, npix, cell, spheroidal_gridder, "spheroidal")
+    # WIP: grid + FFT dirty image (compare to DFT ground truth)
+    # img_sph = dirty_image_fft(u, v, V, npix, cell, spheroidal_gridder, "spheroidal")
 
 
 if __name__ == "__main__":

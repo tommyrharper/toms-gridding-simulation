@@ -1,14 +1,22 @@
 [project]
 name = "toms-gridding-simulation"
 version = "0.1.0"
-description = "Add your description here"
+description = "Analytical radio interferometry simulation for gridding / dirty-image ML"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "astropy>=8.0.1",
     "matplotlib>=3.11.1",
     "numpy>=2.5.1",
+    "scipy>=1.15.0",
 ]
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [dependency-groups]
 dev = [
@@ -16,4 +24,4 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-pythonpath = ["."]
+pythonpath = ["src"]

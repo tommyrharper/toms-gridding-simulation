@@ -1,6 +1,6 @@
 import pytest
 
-from arrays import CONFIG_DIR, config_path
+from gridding_sim.arrays import CONFIG_DIR, config_path
 
 
 def test_resolves_name_without_extension():

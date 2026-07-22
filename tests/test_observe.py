@@ -4,8 +4,8 @@ import pytest
 from astropy.coordinates import Angle
 from astropy.time import Time
 
-from arrays import antennas_local_equatorial
-from observe import _transit_centered_start, observe
+from gridding_sim.arrays import antennas_local_equatorial
+from gridding_sim.observe import _transit_centered_start, observe
 
 
 def test_transit_centered_start_puts_ha_at_zero_at_midpoint():

@@ -14,7 +14,7 @@ import astropy.units as u
 from astropy.time import Time
 from astropy.coordinates import Angle
 
-from arrays import antennas_local_equatorial, C
+from .arrays import antennas_local_equatorial, C
 
 
 def _transit_centered_start(ra_deg, duration_h, lon_deg, ref="2026-01-01T00:00:00"):

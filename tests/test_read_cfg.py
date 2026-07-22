@@ -1,6 +1,6 @@
 import numpy as np
 
-from arrays import CONFIG_DIR, _read_cfg
+from gridding_sim.arrays import CONFIG_DIR, _read_cfg
 
 
 def write_cfg(tmp_path, text):

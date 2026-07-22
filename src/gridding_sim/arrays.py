@@ -2,7 +2,8 @@ import numpy as np
 from pathlib import Path
 
 C = 299792458.0
-CONFIG_DIR = Path(__file__).resolve().parent / "configs"
+# Repo-root configs/ (src/gridding_sim/ -> repo root is parents[2])
+CONFIG_DIR = Path(__file__).resolve().parents[2] / "configs"
 
 # site (lat, lon) in degrees for LOC configs -- cannot be derived from local x,y,z
 _LOC_SITE = {

@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from arrays import (
+from gridding_sim.arrays import (
     CONFIG_DIR,
     _LOC_SITE,
     _enu_to_local_equatorial,

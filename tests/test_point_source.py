@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from simulate import ARCSEC, field_halfwidth_arcsec, make_point_sources, point_source_vis
+from gridding_sim.simulate import ARCSEC, field_halfwidth_arcsec, make_point_sources, point_source_vis
 
 
 def test_point_source_vis_no_sources_is_zero():

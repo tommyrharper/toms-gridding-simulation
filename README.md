@@ -1,16 +1,39 @@
 # toms-gridding-simulation
 
-## Testing
+Analytical radio interferometry simulation for gridding and dirty-image work (UROP).
+
+## Setup
 
 This project uses [uv](https://docs.astral.sh/uv/) for dependency management and `pytest` for testing.
-
-Install dependencies:
 
 ```sh
 uv sync
 ```
 
-Run the test suite:
+## Repo layout
+
+| Path | Role |
+|---|---|
+| `src/gridding_sim/` | Library: arrays, observe, simulate (DFT ground truth), gridtools |
+| `configs/` | Antenna array `.cfg` files |
+| `scripts/` | Runnable demos / CLIs (`demo_observe.py`) |
+| `data/` | Generated datasets (gitignored) |
+| `tests/` | Pytest suite |
+
+**Later (not created yet):** classical `imaging/`, `metrics/`, `ml/`, `benchmarks/`, `runs/`.
+
+## Run the demo
+
+```sh
+uv sync
+uv run python scripts/demo_observe.py
+```
+
+If you see `ModuleNotFoundError: No module named 'gridding_sim'`, the demo
+script bootstraps `src/` automatically via `scripts/_repo_path.py`. Re-run
+`uv sync` once, then try the command again.
+
+## Testing
 
 ```sh
 uv run pytest

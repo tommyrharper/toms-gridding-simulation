@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from simulate import ARCSEC, dirty_beam, dirty_image, w_term_error
+from gridding_sim.simulate import ARCSEC, dirty_beam, dirty_image, w_term_error
 
 
 def test_zero_baseline_gives_uniform_image_of_real_part():
