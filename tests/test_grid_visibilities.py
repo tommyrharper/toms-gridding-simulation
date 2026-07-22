@@ -50,6 +50,20 @@ def test_empty_visibilities_give_zero_grid():
 
 
 # ---------------------------------------------------------------------------
+# Stepping stone: centred index before du / kernel wiring
+# ---------------------------------------------------------------------------
+def test_single_visibility_at_origin_hardcoded_centre_deposit():
+    """u=v=0 on an odd grid: centre pixel gets V (hardcode-friendly first step)."""
+    npix = 9
+    u = np.array([0.0])
+    v = np.array([0.0])
+    V = np.array([2.0 + 1.0j])
+    grid = grid_visibilities(u, v, V, npix=npix, cell=1.0, kernel=_box_kernel, W=6)
+    c = npix // 2
+    assert grid[c, c] == pytest.approx(2.0 + 1.0j)
+
+
+# ---------------------------------------------------------------------------
 # Centred indexing: index i <-> (i - npix//2) * du
 # ---------------------------------------------------------------------------
 def test_visibility_at_origin_with_box_kernel_lands_only_on_centre_pixel():
@@ -58,7 +72,6 @@ def test_visibility_at_origin_with_box_kernel_lands_only_on_centre_pixel():
     v = np.array([0.0])
     V = np.array([3.0 + 0.0j])
     grid = grid_visibilities(u, v, V, npix=npix, cell=cell, kernel=_box_kernel, W=6)
-
     c = npix // 2
     assert grid[c, c] == pytest.approx(3.0 + 0.0j)
     grid[c, c] = 0
