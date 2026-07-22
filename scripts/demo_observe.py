@@ -12,6 +12,7 @@ from gridding_sim.simulate import (
 )
 from gridding_sim.diagnostics import check_narrow_field_approximation
 from gridding_sim.plotting import plot_uv_coverage_and_dirty_beam, plot_dft_dirty_image
+from gridding_sim.gridtools import spheroidal_gridder, dirty_image_fft
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  Antenna configurations in configs/  (241 total; run list_arrays() for them all).
@@ -95,7 +96,7 @@ def main() -> None:
     plot_dft_dirty_image(img_dft, show_plot=False)
 
     # WIP: grid + FFT dirty image (compare to DFT ground truth)
-    # img_sph = dirty_image_fft(u, v, V, npix, cell, spheroidal_gridder, "spheroidal")
+    img_sph = dirty_image_fft(u, v, V, npix, cell, spheroidal_gridder, "spheroidal")
 
 
 if __name__ == "__main__":
