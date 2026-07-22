@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 import _repo_path  # noqa: F401  — put src/ on path before package imports
 
@@ -12,7 +13,7 @@ from gridding_sim.simulate import (
 )
 from gridding_sim.diagnostics import check_narrow_field_approximation
 from gridding_sim.plotting import plot_uv_coverage_and_dirty_beam, plot_dft_dirty_image
-from gridding_sim.gridtools import spheroidal_gridder, dirty_image_fft
+from gridding_sim.gridtools import spheroidal_gridder, dirty_image_fft, least_misfit_gridder
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  Antenna configurations in configs/  (241 total; run list_arrays() for them all).
@@ -95,8 +96,28 @@ def main() -> None:
     print("peak flux:", img_dft.max())
     plot_dft_dirty_image(img_dft, show_plot=False)
 
-    # WIP: grid + FFT dirty image (compare to DFT ground truth)
+    # Grid + FFT dirty images (compare to DFT ground truth)
     img_sph = dirty_image_fft(u, v, V, npix, cell, spheroidal_gridder, "spheroidal")
+    img_lm = dirty_image_fft(u, v, V, npix, cell, least_misfit_gridder, "least_misfit")
+
+    assert img_sph is not None and img_lm is not None, "finish Step 9 first"
+
+    inner = slice(npix // 4, 3 * npix // 4)
+    d_sph = img_dft - img_sph
+    d_lm  = img_dft - img_lm
+    vmax  = np.abs(np.concatenate([d_sph[inner, inner], d_lm[inner, inner]])).max()
+
+    fig, ax = plt.subplots(1, 3, figsize=(15, 4.4))
+    ax[0].imshow(img_dft.T, origin="lower", cmap="cubehelix")
+    ax[0].set_title("DFT (ground truth)")
+    for a, d, t in [(ax[1], d_sph, "DFT − spheroidal"), (ax[2], d_lm, "DFT − least-misfit")]:
+        im = a.imshow(d.T, origin="lower", cmap="RdBu_r", vmin=-vmax, vmax=vmax)
+        a.set_title(t); fig.colorbar(im, ax=a, shrink=.8)
+    plt.show()
+
+    for name, d in [("spheroidal", d_sph), ("least-misfit", d_lm)]:
+        e = d[inner, inner]
+        print(f"{name:13s}: inner-field error  max={np.abs(e).max():.2e}  rms={np.sqrt((e**2).mean()):.2e}")
 
 
 if __name__ == "__main__":

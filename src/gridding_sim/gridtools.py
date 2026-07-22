@@ -316,9 +316,7 @@ def dirty_image_fft(
         return np.zeros((npix, npix), dtypes=np.complex128)
 
     grid = grid_visibilities(u, v, V, npix, cell, kernel, W)
-    print("grid: ", grid)
 
-    
     """
     Demonstrate what np.fft.ifftshift does:
     Original array: [0 1 2 3 4 5 6 7]
