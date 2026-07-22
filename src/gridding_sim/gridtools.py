@@ -14,6 +14,8 @@ Derivation: Ye, Gull, Tan & Nikolic, "Optimal gridding and degridding in radio
 interferometry imaging", MNRAS 2019 (arXiv:1906.07102).  The least-misfit kernel
 is the paper's optimum; the spheroidal is the classical choice -- compare them!
 """
+
+from calendar import c
 from typing import Callable
 
 import numpy as np
@@ -22,6 +24,7 @@ import math
 from scipy.special import pro_ang1
 
 from .simulate import ARCSEC
+
 
 # ---------------------------------------------------------------------------
 # spheroidal gridding function (closed form)
@@ -190,7 +193,39 @@ def dirty_image_fft(
         return np.zeros((npix, npix), dtypes=np.complex128)
 
     grid = grid_visibilities(u, v, V, npix, cell, kernel, W)
+    print("grid: ", grid)
 
-    image = np.zeros((npix, npix), dtype=np.float64)
+    
+    """
+    Demonstrate what np.fft.ifftshift does:
+    Original array: [0 1 2 3 4 5 6 7]
+    After ifftshift: [4 5 6 7 0 1 2 3]
+    Original 2D array:
+    [[ 0  1  2  3]
+    [ 4  5  6  7]
+    [ 8  9 10 11]
+    [12 13 14 15]]
+    After ifftshift (2D):
+    [[10 11  8  9]
+    [14 15 12 13]
+    [ 2  3  0  1]
+    [ 6  7  4  5]]
+    """
+    # Convert from centred uv ordering to NumPy FFT ordering.
+    uv_grid_in_fft_order = np.fft.ifftshift(grid)
 
-    return image
+    # Inverse Fourier transform into the image plane.
+    dirty_image_in_fft_order = np.fft.ifft2(uv_grid_in_fft_order)
+
+    # Put l = 0, m = 0 at the centre of the image.
+    dirty_image_centred = np.fft.fftshift(dirty_image_in_fft_order)
+
+    # this corrects for a scaling factor in ifft2
+    # ifft2 scales by 1/N^2 (N = number of pixel)
+    # exact DFT scales by the number of visibilities
+    normalisation = npix**2 / len(V)
+
+    # Normalise the image
+    normalised_dirty_image_centred = dirty_image_centred * normalisation
+
+    return normalised_dirty_image_centred.real
