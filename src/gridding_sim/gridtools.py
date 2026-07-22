@@ -275,8 +275,9 @@ def grid_visibilities(
             if abs(nu) >= half_width:
                 continue
 
-            # get kernel weight for this dist from centre
-            weight_u = kernel(nu, W=W)
+            # get kernel weight for this dist from centre (force a scalar: a
+            # kernel returning a non-0-d array crashes the `G[i, j] +=` below)
+            weight_u = float(np.asarray(kernel(nu, W=W)).item())
 
             for j in range(j_start, j_stop + 1):
                 if j < 0 or j >= npix:
@@ -289,7 +290,7 @@ def grid_visibilities(
                     continue
 
                 # get kernel weight for this dist from centre
-                weight_v = kernel(nv, W=W)
+                weight_v = float(np.asarray(kernel(nv, W=W)).item())
 
                 # convolved visibility pixel
                 convolved_visibility_pixel = vis * weight_u * weight_v
