@@ -41,5 +41,7 @@ def grid_visibilities(u, v, V, npix, cell, kernel, W=6):
     return
 
 
-def dirty_image_fft():
+def dirty_image_fft(u, v, V, npix, cell, kernel, corr_kind, W=6):
+    print('u', u)
+    grid = grid_visibilities(u, v, V, npix, cell, kernel, W)
     return
