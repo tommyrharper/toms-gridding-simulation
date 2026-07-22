@@ -26,7 +26,7 @@ uv sync
 
 ```sh
 uv sync
-uv run python scripts/demo_observe.py
+uv run scripts/demo_observe.py
 ```
 
 If you see `ModuleNotFoundError: No module named 'gridding_sim'`, the demo

@@ -163,7 +163,7 @@ def main():
 
     img_dft = dirty_image(u, v, V, npix, cell)
     print("peak flux:", img_dft.max())
-    plot_dft_dirty_image(img_dft, show_plot=True)
+    plot_dft_dirty_image(img_dft, show_plot=False)
 
     # WIP: grid + FFT dirty image (compare to DFT ground truth)
     # img_sph = dirty_image_fft(u, v, V, npix, cell, spheroidal_gridder, "spheroidal")
