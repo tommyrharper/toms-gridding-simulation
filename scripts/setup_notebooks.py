@@ -33,6 +33,7 @@ def main() -> None:
 
     git_config("filter.nbstripout.clean", "uv run nbstripout")
     git_config("filter.nbstripout.smudge", "cat")
+    git_config("filter.nbstripout.required", "true")
     git_config("diff.jupyternotebook.command", "uv run git-nbdiffdriver diff")
     git_config(
         "merge.jupyternotebook.driver", "uv run git-nbmergedriver merge %O %A %B %L %P"
