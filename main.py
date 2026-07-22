@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+from gridtools import spheroidal_gridder
 from arrays import list_arrays
 from observe import observe
 from simulate import (
@@ -104,7 +105,8 @@ def plot_dft_dirty_image(img, show_plot=False):
     plt.imshow(img.T, origin="lower", cmap="cubehelix")
     plt.title("DFT dirty image (ground truth)")
     plt.colorbar()
-    plt.show()
+    if show_plot:
+        plt.show()
 
 
 def check_narrow_field_approximation(w, array, npix, cell):
@@ -119,6 +121,14 @@ def check_narrow_field_approximation(w, array, npix, cell):
     else:
         print(" -> w MATTERS: shrink npix*cell, or use w-projection")
 
+
+def grid_visibilities(u, v, V, npix, cell, kernel, W=6):
+    fov = npix * cell * ARCSEC
+
+    return
+
+def dirty_image_fft():
+    return
 
 def main():
     print(len(list_arrays()), "configurations available")
@@ -149,7 +159,9 @@ def main():
 
     img_dft = dirty_image(u, v, V, npix, cell)
     print("peak flux:", img_dft.max())
-    plot_dft_dirty_image(img_dft, show_plot=True)
+    plot_dft_dirty_image(img_dft, show_plot=False)
+
+    img_sph = dirty_image_fft(u, v, V, npix, cell, spheroidal_gridder, "spheroidal")
 
 
 if __name__ == "__main__":
