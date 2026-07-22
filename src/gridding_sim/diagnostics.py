@@ -30,3 +30,29 @@ def check_narrow_field_approximation(
         print(" -> marginal: fine near the centre, errors grow toward the edge")
     else:
         print(" -> w MATTERS: shrink npix*cell, or use w-projection")
+
+
+def fft_residuals(
+    img_dft: npt.NDArray[np.float64],
+    img_sph: npt.NDArray[np.float64],
+    img_lm: npt.NDArray[np.float64],
+) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], float, slice]:
+    """DFT minus each FFT image, plus a shared residual colour scale."""
+    npix = img_dft.shape[0]
+    inner = slice(npix // 4, 3 * npix // 4)
+    d_sph = img_dft - img_sph
+    d_lm = img_dft - img_lm
+    vmax = float(np.abs(np.concatenate([d_sph[inner, inner], d_lm[inner, inner]])).max())
+    return d_sph, d_lm, vmax, inner
+
+
+def print_residual_stats(
+    residuals: dict[str, npt.NDArray[np.float64]],
+    inner: slice,
+) -> None:
+    for name, d in residuals.items():
+        e = d[inner, inner]
+        print(
+            f"{name:13s}: inner-field error  "
+            f"max={np.abs(e).max():.2e}  rms={np.sqrt((e**2).mean()):.2e}"
+        )

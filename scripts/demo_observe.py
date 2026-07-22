@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
 import _repo_path  # noqa: F401  — put src/ on path before package imports
 
@@ -10,9 +9,15 @@ from gridding_sim.simulate import (
     field_halfwidth_arcsec,
     make_point_sources,
     point_source_vis,
+    make_dirty_beam,
 )
-from gridding_sim.diagnostics import check_narrow_field_approximation
-from gridding_sim.plotting import plot_uv_coverage_and_dirty_beam, plot_dft_dirty_image
+from gridding_sim.diagnostics import (
+    check_narrow_field_approximation,
+    require_visibilities,
+    fft_residuals,
+    print_residual_stats,
+)
+from gridding_sim.plotting import plot_demo_summary
 from gridding_sim.gridtools import spheroidal_gridder, dirty_image_fft, least_misfit_gridder
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -73,7 +78,8 @@ def main() -> None:
     print("Duration hours: ", duration_h)
 
     u, v, w, info = observe(ra_deg, dec_deg, duration_h=duration_h, array=radio_array)
-    plot_uv_coverage_and_dirty_beam(u, v, info, radio_array, dec_deg, show_plot=False)
+    require_visibilities(u, info, radio_array, dec_deg)
+    print(f"n_vis = {info['n_vis']},  max elev = {info['max_elev_deg']:.1f} deg")
     check_narrow_field_approximation(w, radio_array, npix, cell)
 
     hw = field_halfwidth_arcsec(npix, cell)
@@ -93,31 +99,26 @@ def main() -> None:
     print(f"sky_mode={sky_mode!r}: {len(sources)} source(s), {info['n_vis']} visibilities")
 
     img_dft = dirty_image(u, v, V, npix, cell)
-    print("peak flux:", img_dft.max())
-    plot_dft_dirty_image(img_dft, show_plot=False)
-
-    # Grid + FFT dirty images (compare to DFT ground truth)
     img_sph = dirty_image_fft(u, v, V, npix, cell, spheroidal_gridder, "spheroidal")
-    img_lm = dirty_image_fft(u, v, V, npix, cell, least_misfit_gridder, "least_misfit")
+    img_lm = dirty_image_fft(u, v, V, npix, cell, least_misfit_gridder, "least-misfit")
+    print("DFT peak flux:", img_dft.max())
 
-    assert img_sph is not None and img_lm is not None, "finish Step 9 first"
+    beam, beam_cell = make_dirty_beam(u, v)
+    d_sph, d_lm, vmax, inner = fft_residuals(img_dft, img_sph, img_lm)
+    print_residual_stats({"spheroidal": d_sph, "least-misfit": d_lm}, inner)
 
-    inner = slice(npix // 4, 3 * npix // 4)
-    d_sph = img_dft - img_sph
-    d_lm  = img_dft - img_lm
-    vmax  = np.abs(np.concatenate([d_sph[inner, inner], d_lm[inner, inner]])).max()
-
-    fig, ax = plt.subplots(1, 3, figsize=(15, 4.4))
-    ax[0].imshow(img_dft.T, origin="lower", cmap="cubehelix")
-    ax[0].set_title("DFT (ground truth)")
-    for a, d, t in [(ax[1], d_sph, "DFT − spheroidal"), (ax[2], d_lm, "DFT − least-misfit")]:
-        im = a.imshow(d.T, origin="lower", cmap="RdBu_r", vmin=-vmax, vmax=vmax)
-        a.set_title(t); fig.colorbar(im, ax=a, shrink=.8)
-    plt.show()
-
-    for name, d in [("spheroidal", d_sph), ("least-misfit", d_lm)]:
-        e = d[inner, inner]
-        print(f"{name:13s}: inner-field error  max={np.abs(e).max():.2e}  rms={np.sqrt((e**2).mean()):.2e}")
+    plot_demo_summary(
+        u,
+        v,
+        radio_array,
+        beam,
+        beam_cell,
+        img_dft,
+        d_sph,
+        d_lm,
+        vmax,
+        show_plot=True,
+    )
 
 
 if __name__ == "__main__":

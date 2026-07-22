@@ -63,6 +63,28 @@ def dirty_beam(
     return dirty_image(u, v, ones, npix, cell_arcsec, weights)
 
 
+def beam_cell_arcsec(u: npt.ArrayLike, v: npt.ArrayLike) -> float:
+    """Pixel size with ~3 px across the main lobe (PSF diagnostic zoom)."""
+    u = np.asarray(u, float)
+    v = np.asarray(v, float)
+    bmax = np.hypot(u, v).max()
+    return (1.0 / bmax) / ARCSEC / 3.0
+
+
+def make_dirty_beam(
+    u: npt.ArrayLike,
+    v: npt.ArrayLike,
+    npix: int = 192,
+) -> tuple[npt.NDArray[np.float64], float]:
+    """Dirty beam on a beam-matched grid (PSF diagnostic, not the imaging FoV)."""
+    u = np.asarray(u, float)
+    v = np.asarray(v, float)
+    cell = beam_cell_arcsec(u, v)
+    step = max(1, u.size // 80000)  # thin big arrays for the DFT
+    beam = dirty_beam(u[::step], v[::step], npix, cell)
+    return beam, cell
+
+
 def w_term_error(w: npt.ArrayLike, npix: int, cell_arcsec: float) -> float:
     """Peak narrow-field phase error [rad] from dropping w, at the field edge:
     |dphi| = 2 pi |w|max (1 - cos theta_edge). << 1 rad => w is safe to ingore."""

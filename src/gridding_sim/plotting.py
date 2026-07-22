@@ -1,56 +1,105 @@
 """Matplotlib helpers for visualising uv coverage, the dirty beam, and dirty images."""
 
+from __future__ import annotations
+
 import numpy as np
 import numpy.typing as npt
 import matplotlib.pyplot as plt
-
-from .observe import ObserveInfo
-from .simulate import ARCSEC, dirty_beam
-from .diagnostics import require_visibilities
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 
 
-def beam_cell_arcsec(u: npt.NDArray[np.float64], v: npt.NDArray[np.float64]) -> float:
-    """Pixel size with ~3 px across the main lobe (PSF diagnostic zoom)."""
-    bmax = np.hypot(u, v).max()
-    return (1.0 / bmax) / ARCSEC / 3.0
-
-
-def plot_uv_coverage_and_dirty_beam(
+def draw_uv_coverage(
+    ax: Axes,
     u: npt.NDArray[np.float64],
     v: npt.NDArray[np.float64],
-    info: ObserveInfo,
     array: str,
-    dec: float,
-    npix: int = 192,
-    show_plot: bool = False,
 ) -> None:
-    """Uv coverage + dirty beam on a beam-matched grid (not the imaging FoV)."""
-    require_visibilities(u, info, array, dec)
+    ax.scatter(u, v, s=1, alpha=0.4)
+    ax.scatter(-u, -v, s=1, alpha=0.4)
+    ax.set_aspect("equal")
+    ax.set_title(f"uv coverage — {array}")
+    ax.set_xlabel(r"u [$\lambda$]")
+    ax.set_ylabel(r"v [$\lambda$]")
 
-    cell = beam_cell_arcsec(u, v)
-    step = max(1, u.size // 80000)  # thin big arrays for the DFT
-    beam = dirty_beam(u[::step], v[::step], npix, cell)
 
-    fig, ax = plt.subplots(1, 2, figsize=(11, 4.6))
-    ax[0].scatter(u, v, s=1, alpha=0.4)
-    ax[0].scatter(-u, -v, s=1, alpha=0.4)
-    ax[0].set_aspect("equal")
-    ax[0].set_title(f"uv coverage — {array}")
-    ax[0].set_xlabel(r"u [$\lambda$]")
-    ax[0].set_ylabel(r"v [$\lambda$]")
-    ax[1].imshow(beam.T, origin="lower", cmap="cubehelix", vmin=-0.05, vmax=0.3)
-    ax[1].set_title(f'dirty beam  (cell = {cell:.3f}")')
-    print(f"n_vis = {info['n_vis']},  max elev = {info['max_elev_deg']:.1f} deg")
+def draw_dirty_beam(ax: Axes, beam: npt.NDArray[np.float64], cell: float) -> None:
+    ax.imshow(beam.T, origin="lower", cmap="cubehelix", vmin=-0.05, vmax=0.3)
+    ax.set_title(f'dirty beam  (cell = {cell:.3f}")')
+
+
+def draw_image(
+    ax: Axes,
+    img: npt.NDArray[np.float64],
+    title: str,
+    *,
+    cmap: str = "cubehelix",
+    vmin: float | None = None,
+    vmax: float | None = None,
+    colorbar: bool = False,
+    fig: Figure | None = None,
+) -> None:
+    im = ax.imshow(img.T, origin="lower", cmap=cmap, vmin=vmin, vmax=vmax)
+    ax.set_title(title)
+    if colorbar:
+        if fig is None:
+            fig = ax.figure
+        fig.colorbar(im, ax=ax, shrink=0.8)
+
+
+def make_demo_summary_axes(fig: Figure) -> dict[str, Axes]:
+    """Top: uv | beam. Bottom: DFT | spheroidal residual | least-misfit residual."""
+    gs = fig.add_gridspec(2, 6, hspace=0.35, wspace=0.45)
+    return {
+        "uv": fig.add_subplot(gs[0, 0:3]),
+        "beam": fig.add_subplot(gs[0, 3:6]),
+        "dft": fig.add_subplot(gs[1, 0:2]),
+        "sph": fig.add_subplot(gs[1, 2:4]),
+        "lm": fig.add_subplot(gs[1, 4:6]),
+    }
+
+
+def plot_demo_summary(
+    u: npt.NDArray[np.float64],
+    v: npt.NDArray[np.float64],
+    array: str,
+    beam: npt.NDArray[np.float64],
+    beam_cell: float,
+    img_dft: npt.NDArray[np.float64],
+    d_sph: npt.NDArray[np.float64],
+    d_lm: npt.NDArray[np.float64],
+    vmax: float,
+    *,
+    show_plot: bool = True,
+) -> Figure:
+    """One figure: uv + beam (top), DFT + FFT residuals (bottom). Draw-only."""
+    fig = plt.figure(figsize=(15, 8.2))
+    ax = make_demo_summary_axes(fig)
+
+    draw_uv_coverage(ax["uv"], u, v, array)
+    draw_dirty_beam(ax["beam"], beam, beam_cell)
+    draw_image(ax["dft"], img_dft, "DFT (ground truth)", colorbar=True, fig=fig)
+    draw_image(
+        ax["sph"],
+        d_sph,
+        "DFT − spheroidal",
+        cmap="RdBu_r",
+        vmin=-vmax,
+        vmax=vmax,
+        colorbar=True,
+        fig=fig,
+    )
+    draw_image(
+        ax["lm"],
+        d_lm,
+        "DFT − least-misfit",
+        cmap="RdBu_r",
+        vmin=-vmax,
+        vmax=vmax,
+        colorbar=True,
+        fig=fig,
+    )
+
     if show_plot:
         plt.show()
-
-
-def plot_dft_dirty_image(
-    img: npt.NDArray[np.float64], show_plot: bool = False
-) -> None:
-    plt.figure(figsize=(5.4, 4.6))
-    plt.imshow(img.T, origin="lower", cmap="cubehelix")
-    plt.title("DFT dirty image (ground truth)")
-    plt.colorbar()
-    if show_plot:
-        plt.show()
+    return fig
