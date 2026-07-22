@@ -16,7 +16,7 @@ uv sync
 |---|---|
 | `src/gridding_sim/` | Library: arrays, observe, simulate (DFT ground truth), imaging (grid+FFT), gridtools (kernels), diagnostics, plotting |
 | `configs/` | Antenna array `.cfg` files |
-| `scripts/` | Runnable demos / CLIs (`demo_observe.py`, `demo_app.py` Streamlit UI, shared pipeline in `demo_core.py`) |
+| `scripts/` | Runnable demos / CLIs (`demo_observe.py`, `demo_app.py` Streamlit UI, shared pipeline in `demo_core.py`); one-time notebook git setup (`setup_notebooks.py`, see Notebooks below) |
 | `data/` | Generated datasets (gitignored) |
 | `tests/` | Pytest suite |
 
