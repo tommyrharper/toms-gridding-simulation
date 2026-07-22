@@ -14,7 +14,10 @@ Derivation: Ye, Gull, Tan & Nikolic, "Optimal gridding and degridding in radio
 interferometry imaging", MNRAS 2019 (arXiv:1906.07102).  The least-misfit kernel
 is the paper's optimum; the spheroidal is the classical choice -- compare them!
 """
+from typing import Callable
+
 import numpy as np
+import numpy.typing as npt
 from scipy.special import pro_ang1
 
 from .simulate import ARCSEC
@@ -22,7 +25,7 @@ from .simulate import ARCSEC
 # ---------------------------------------------------------------------------
 # spheroidal gridding function (closed form)
 # ---------------------------------------------------------------------------
-def spheroidal_gridder(nu, W=6):
+def spheroidal_gridder(nu: npt.ArrayLike, W: float = 6) -> npt.NDArray[np.float64]:
     """0th-order prolate spheroidal gridding function, zero outside |nu| < W/2"""
     nu = np.asarray(nu, float)
     t = 2.0 * nu / W
@@ -35,7 +38,15 @@ def spheroidal_gridder(nu, W=6):
 # ---------------------------------------------------------------------------
 # WIP: grid + FFT dirty image (compare to the DFT ground truth in simulate.py)
 # ---------------------------------------------------------------------------
-def grid_visibilities(u, v, V, npix, cell, kernel, W=6):
+def grid_visibilities(
+    u: npt.ArrayLike,
+    v: npt.ArrayLike,
+    V: npt.NDArray[np.complexfloating],
+    npix: int,
+    cell: float,
+    kernel: Callable[..., npt.NDArray[np.float64]],
+    W: float = 6,
+) -> npt.NDArray[np.complex128]:
     """Deposit visibilities onto a regular uv grid by convolutional gridding.
 
     Parameters
@@ -90,7 +101,16 @@ def grid_visibilities(u, v, V, npix, cell, kernel, W=6):
     raise NotImplementedError("implement convolutional gridding (TDD)")
 
 
-def dirty_image_fft(u, v, V, npix, cell, kernel, corr_kind, W=6):
+def dirty_image_fft(
+    u: npt.ArrayLike,
+    v: npt.ArrayLike,
+    V: npt.NDArray[np.complexfloating],
+    npix: int,
+    cell: float,
+    kernel: Callable[..., npt.NDArray[np.float64]],
+    corr_kind: str,
+    W: float = 6,
+) -> None:
     print('u', u)
     grid = grid_visibilities(u, v, V, npix, cell, kernel, W)
     return

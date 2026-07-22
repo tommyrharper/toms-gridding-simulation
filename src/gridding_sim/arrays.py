@@ -1,12 +1,13 @@
 import numpy as np
+import numpy.typing as npt
 from pathlib import Path
 
-C = 299792458.0
+C: float = 299792458.0
 # Repo-root configs/ (src/gridding_sim/ -> repo root is parents[2])
-CONFIG_DIR = Path(__file__).resolve().parents[2] / "configs"
+CONFIG_DIR: Path = Path(__file__).resolve().parents[2] / "configs"
 
 # site (lat, lon) in degrees for LOC configs -- cannot be derived from local x,y,z
-_LOC_SITE = {
+_LOC_SITE: dict[str, tuple[float, float]] = {
     "ALMA": (-23.0229, -67.7549),
     "ACA": (-23.0229, -67.7549),
     "ALMASD": (-23.0229, -67.7549),
@@ -15,12 +16,12 @@ _LOC_SITE = {
 }
 
 
-def list_arrays():
+def list_arrays() -> list[str]:
     """All available configuration names (file stems in configs/)."""
     return sorted(p.name[:-4] for p in CONFIG_DIR.glob("*.cfg"))
 
 
-def config_path(name):
+def config_path(name: str) -> Path:
     """Resolve 'vla.a' | 'vla.a.cfg' " a full path -> existing .cfg path."""
     p = Path(name)
     if p.suffix == ".cfg" and p.exists():
@@ -31,7 +32,7 @@ def config_path(name):
     raise FileNotFoundError(f"config '{name}' not found in {CONFIG_DIR}")
 
 
-def _read_cfg(path):
+def _read_cfg(path: Path) -> tuple[npt.NDArray[np.float64], str, str]:
     """Parse a .cfg -> (positions [N,3] float, coordsys, observatory)."""
     coordsys, obs, rows = "XYZ", "", []
     with open(path) as fh:
@@ -51,14 +52,18 @@ def _read_cfg(path):
         return np.array(rows), coordsys, obs
 
 
-def _enu_to_local_equatorial(enu, lat):
+def _enu_to_local_equatorial(
+    enu: npt.NDArray[np.float64], lat: float
+) -> npt.NDArray[np.float64]:
     E, N, U = enu[:, 0], enu[:, 1], enu[:, 2]
     return np.column_stack(
         [-N * np.sin(lat) + U * np.cos(lat), E, N * np.cos(lat) + U * np.sin(lat)]
     )
 
 
-def antennas_local_equatorial(name):
+def antennas_local_equatorial(
+    name: str,
+) -> tuple[npt.NDArray[np.float64], float, float]:
     """Antennas in the local-equatorial fram [m], site latitude [rad],
     site longitude [deg]. WOrks for any XYZ or supported-LOC config."""
     path = config_path(name)

@@ -16,15 +16,27 @@ Conventions match the Imaging-Tutorial (Ye et al. 2019):
 Narrow field: w-term ignored (n ~ 1).
 """
 
-import numpy as np
+from typing import Sequence
 
-ARCSEC = np.pi / (180.0 * 3600.0)  # radians per arcsec
+import numpy as np
+import numpy.typing as npt
+
+ARCSEC: float = np.pi / (180.0 * 3600.0)  # radians per arcsec
+
+PointSource = tuple[float, float, float]
 
 
 # ---------------------------------------------------------------------------
 # 3. Exact dirty image  (brute-force DFT)  and dirty beam
 # ---------------------------------------------------------------------------
-def dirty_image(u, v, V, npix, cell_arcsec, weights=None):
+def dirty_image(
+    u: npt.ArrayLike,
+    v: npt.ArrayLike,
+    V: npt.NDArray[np.complexfloating],
+    npix: int,
+    cell_arcsec: float,
+    weights: npt.NDArray[np.float64] | None = None,
+) -> npt.NDArray[np.float64]:
     """Exact DFT dirty image, shape (npix, npix). cell in arcsec, image centred."""
     u = np.asarray(u, float)
     v = np.asarray(v, float)
@@ -39,13 +51,19 @@ def dirty_image(u, v, V, npix, cell_arcsec, weights=None):
     return img
 
 
-def dirty_beam(u, v, npix, cell_arcsec, weights=None):
+def dirty_beam(
+    u: npt.ArrayLike,
+    v: npt.ArrayLike,
+    npix: int,
+    cell_arcsec: float,
+    weights: npt.NDArray[np.float64] | None = None,
+) -> npt.NDArray[np.float64]:
     """Dirty beam = dirty image of a unit point source at the phase centre."""
     ones = np.ones(np.asarray(u).shape, dtype=np.complex128)
     return dirty_image(u, v, ones, npix, cell_arcsec, weights)
 
 
-def w_term_error(w, npix, cell_arcsec):
+def w_term_error(w: npt.ArrayLike, npix: int, cell_arcsec: float) -> float:
     """Peak narrow-field phase error [rad] from dropping w, at the field edge:
     |dphi| = 2 pi |w|max (1 - cos theta_edge). << 1 rad => w is safe to ingore."""
     theta_edge = (npix // 2) * cell_arcsec * ARCSEC
@@ -55,7 +73,9 @@ def w_term_error(w, npix, cell_arcsec):
 # ---------------------------------------------------------------------------
 # 1. Sky  ->  analytic visibility function  V_true(u,v)
 # ---------------------------------------------------------------------------
-def point_source_vis(u, v, sources):
+def point_source_vis(
+    u: npt.ArrayLike, v: npt.ArrayLike, sources: Sequence[PointSource]
+) -> npt.NDArray[np.complex128]:
     """Exact visibility of a set of point sources, sampled at (u,v) [wavelengths].
 
     sources: list of (l, m, flux) with l,m in radians, flux in Jy.
@@ -70,22 +90,24 @@ def point_source_vis(u, v, sources):
         V += flux * np.exp(-2j * np.pi * (u * l + v * m))
     return V
 
-def field_halfwidth_arcsec(npix, cell_arcsec, margin=0.8):
+def field_halfwidth_arcsec(
+    npix: int, cell_arcsec: float, margin: float = 0.8
+) -> float:
     """Max source offset from the centre (arcsec) that stays safely inside the image."""
     return margin * (npix // 2) * cell_arcsec
 
 
 def make_point_sources(
-    mode,
-    npix,
-    cell_arcsec,
-    n=1,
-    flux=2.0,
-    manual=None,
-    rng=None,
-    flux_range=(0.5, 5.0),
-    margin=0.8,
-):
+    mode: str,
+    npix: int,
+    cell_arcsec: float,
+    n: int = 1,
+    flux: float = 2.0,
+    manual: Sequence[PointSource] | None = None,
+    rng: np.random.Generator | None = None,
+    flux_range: tuple[float, float] = (0.5, 5.0),
+    margin: float = 0.8,
+) -> list[PointSource]:
     """Build a list of point sources (l, m, flux), l/m in radians.
 
     mode = "single" : one `flux`-Jy source at the phase centre (recommended first)

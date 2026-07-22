@@ -1,19 +1,29 @@
 """Matplotlib helpers for visualising uv coverage, the dirty beam, and dirty images."""
 
 import numpy as np
+import numpy.typing as npt
 import matplotlib.pyplot as plt
 
+from .observe import ObserveInfo
 from .simulate import ARCSEC, dirty_beam
 from .diagnostics import require_visibilities
 
 
-def beam_cell_arcsec(u, v):
+def beam_cell_arcsec(u: npt.NDArray[np.float64], v: npt.NDArray[np.float64]) -> float:
     """Pixel size with ~3 px across the main lobe (PSF diagnostic zoom)."""
     bmax = np.hypot(u, v).max()
     return (1.0 / bmax) / ARCSEC / 3.0
 
 
-def plot_uv_coverage_and_dirty_beam(u, v, info, array, dec, npix=192, show_plot=False):
+def plot_uv_coverage_and_dirty_beam(
+    u: npt.NDArray[np.float64],
+    v: npt.NDArray[np.float64],
+    info: ObserveInfo,
+    array: str,
+    dec: float,
+    npix: int = 192,
+    show_plot: bool = False,
+) -> None:
     """Uv coverage + dirty beam on a beam-matched grid (not the imaging FoV)."""
     require_visibilities(u, info, array, dec)
 
@@ -35,7 +45,9 @@ def plot_uv_coverage_and_dirty_beam(u, v, info, array, dec, npix=192, show_plot=
         plt.show()
 
 
-def plot_dft_dirty_image(img, show_plot=False):
+def plot_dft_dirty_image(
+    img: npt.NDArray[np.float64], show_plot: bool = False
+) -> None:
     plt.figure(figsize=(5.4, 4.6))
     plt.imshow(img.T, origin="lower", cmap="cubehelix")
     plt.title("DFT dirty image (ground truth)")

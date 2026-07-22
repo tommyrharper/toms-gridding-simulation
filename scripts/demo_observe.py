@@ -40,7 +40,7 @@ from gridding_sim.plotting import plot_uv_coverage_and_dirty_beam, plot_dft_dirt
 #  Supported coord systems: XYZ (VLA/VLBA/ngVLA/WSRT/ATCA) + LOC (ALMA/ACA/MeerKAT/SMA).
 #  UTM configs (a few ALMA / CARMA) are NOT supported.
 
-RADIO = [
+RADIO: list[str] = [
     "vla.a",  # 0
     "vla.b",  # 1
     "vla.c",  # 2
@@ -53,17 +53,17 @@ RADIO = [
 ]
 
 # Observation
-radio_array = RADIO[0]
-ra_deg = 0.0  # right ascension [deg]
-dec_deg = 34.0  # declination [deg]
-duration_h = 1.0  # hours (5 min ≈ 0.083)
+radio_array: str = RADIO[0]
+ra_deg: float = 0.0  # right ascension [deg]
+dec_deg: float = 34.0  # declination [deg]
+duration_h: float = 1.0  # hours (5 min ≈ 0.083)
 
 # Imaging grid (DFT dirty image / w-term check)
-npix = 256
-cell = 0.10  # arcsec / pixel
+npix: int = 256
+cell: float = 0.10  # arcsec / pixel
 
 
-def main():
+def main() -> None:
     print(len(list_arrays()), "configurations available")
     print("Current antenna array: ", radio_array)
     print("Right ascension degrees: ", ra_deg)

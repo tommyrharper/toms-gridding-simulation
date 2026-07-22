@@ -9,7 +9,10 @@ the local sidereal time (HA = LST - RA), drop the steps when the source is below
 the horizon, and rotate every baseline into the (u,v) plane.
 """
 
+from typing import TypedDict
+
 import numpy as np
+import numpy.typing as npt
 import astropy.units as u
 from astropy.time import Time
 from astropy.coordinates import Angle
@@ -17,7 +20,24 @@ from astropy.coordinates import Angle
 from .arrays import antennas_local_equatorial, C
 
 
-def _transit_centered_start(ra_deg, duration_h, lon_deg, ref="2026-01-01T00:00:00"):
+class ObserveInfo(TypedDict):
+    """Diagnostics returned by :func:`observe` alongside the uv sampling."""
+
+    n_baseline: int
+    n_dump: int
+    n_dump_up: int
+    n_vis: int
+    ha_up_hours: tuple[float, float] | None
+    max_elev_deg: float
+    w_range: tuple[float, float] | None
+
+
+def _transit_centered_start(
+    ra_deg: float,
+    duration_h: float,
+    lon_deg: float,
+    ref: str = "2026-01-01T00:00:00",
+) -> Time:
     """UTC start time that centres a `duration_h` observation on the sources'
     transit (HA=0), where the uv coverage is symmetric and the source highest."""
     ref_t = Time(ref)
@@ -28,15 +48,20 @@ def _transit_centered_start(ra_deg, duration_h, lon_deg, ref="2026-01-01T00:00:0
 
 
 def observe(
-    ra_deg,
-    dec_deg,
-    start=None,
-    duration_h=6.0,
-    integration_s=30.0,
-    array="vla.a",
-    freq=4.0e9,
-    horizon_deg=8.0,
-):
+    ra_deg: float,
+    dec_deg: float,
+    start: str | Time | None = None,
+    duration_h: float = 6.0,
+    integration_s: float = 30.0,
+    array: str = "vla.a",
+    freq: float = 4.0e9,
+    horizon_deg: float = 8.0,
+) -> tuple[
+    npt.NDArray[np.float64],
+    npt.NDArray[np.float64],
+    npt.NDArray[np.float64],
+    ObserveInfo,
+]:
     """Simulate an observation and return the uv sampling.
 
     Parameters
@@ -90,7 +115,7 @@ def observe(
         + np.sin(dec) * B[:, 2]
     )
 
-    info = {
+    info: ObserveInfo = {
         "n_baseline": len(i),
         "n_dump": n_dump,
         "n_dump_up": int(up.sum()),

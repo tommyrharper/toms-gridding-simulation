@@ -18,6 +18,9 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+gridding_sim = ["py.typed"]
+
 [dependency-groups]
 dev = [
     "pytest>=9.1.1",
