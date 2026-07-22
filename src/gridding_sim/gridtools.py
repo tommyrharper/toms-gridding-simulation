@@ -17,6 +17,8 @@ is the paper's optimum; the spheroidal is the classical choice -- compare them!
 import numpy as np
 from scipy.special import pro_ang1
 
+from .simulate import ARCSEC
+
 # ---------------------------------------------------------------------------
 # spheroidal gridding function (closed form)
 # ---------------------------------------------------------------------------
@@ -28,3 +30,16 @@ def spheroidal_gridder(nu, W=6):
     g = t * t < 1.0
     out[g] = np.sqrt(1.0 - t[g] ** 2) * pro_ang1(1, 1, W / 2 * np.pi, t[g])[0]
     return out
+
+
+# ---------------------------------------------------------------------------
+# WIP: grid + FFT dirty image (compare to the DFT ground truth in simulate.py)
+# ---------------------------------------------------------------------------
+def grid_visibilities(u, v, V, npix, cell, kernel, W=6):
+    fov = npix * cell * ARCSEC
+
+    return
+
+
+def dirty_image_fft():
+    return
