@@ -15,7 +15,6 @@ interferometry imaging", MNRAS 2019 (arXiv:1906.07102).  The least-misfit kernel
 is the paper's optimum; the spheroidal is the classical choice -- compare them!
 """
 
-from calendar import c
 from typing import Callable
 
 import numpy as np
