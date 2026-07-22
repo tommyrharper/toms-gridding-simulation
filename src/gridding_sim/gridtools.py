@@ -87,7 +87,7 @@ def grid_visibilities(
     # Convert inputs ot NumPy arrays so indexing behaves consistently
     u = np.asarray(u, dtype=np.float64)
     v = np.asarray(v, dtype=np.float64)
-    V = np.asarray(V, dtype=np.float64)
+    V = np.asarray(V, dtype=np.complex128)
 
     if u.ndim != 1 or v.ndim != 1 or V.ndim != 1:
         raise ValueError("u, v, and V must be one-dimensional arrays")
@@ -172,15 +172,6 @@ def grid_visibilities(
                 G[i, j] += convolved_visibility_pixel
 
     return G
-
-
-
-    # Your TDD path (one test at a time — see the plan):
-    # 1. zeros grid  2. empty early-return  3. hardcode G[c,c]=V[0]
-    # 4. kernel at origin  5. du + shift  6. tent neighbours
-    # 7. loop visibilities  8. no normalize  9. clip bounds  10. spheroidal
-    return G
-    raise NotImplementedError("implement convolutional gridding (TDD)")
 
 
 def dirty_image_fft(
