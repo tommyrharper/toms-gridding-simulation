@@ -54,12 +54,15 @@ def main() -> None:
     V = point_source_vis(u, v, sources)
     print(f"sky_mode={cfg.sky_mode!r}: {len(sources)} source(s), {info['n_vis']} visibilities")
 
+    # Exact perfect dirty image
     img_dft = dirty_image(u, v, V, cfg.npix, cfg.cell)
+    # Gridded iFFT imperfect dirty images
     img_sph = dirty_image_fft(u, v, V, cfg.npix, cfg.cell, spheroidal_gridder, "spheroidal")
     img_lm = dirty_image_fft(u, v, V, cfg.npix, cfg.cell, least_misfit_gridder, "least_misfit")
     print("DFT peak flux:", img_dft.max())
 
     beam, beam_cell = make_dirty_beam(u, v)
+    # how accurate is the gridding + iFFT image
     d_sph, d_lm, vmax, inner = fft_residuals(img_dft, img_sph, img_lm)
     print_residual_stats({"spheroidal": d_sph, "least-misfit": d_lm}, inner)
 

@@ -38,3 +38,43 @@ script bootstraps `src/` automatically via `scripts/_repo_path.py`. Re-run
 ```sh
 uv run pytest
 ```
+
+## Notes
+
+Check if there is anything where the least-misfit function performs worst.
+Modify my code to cut out the dodgy bits at the side of the image after gridding +iFFT.
+Choose the cutoff.
+
+Plug in different gridding functions and see the difference.
+
+We need a metric.
+
+- I need to understand the physics better
+- Identify what the leading problem is
+  - Reading the current techniques
+  - What are people worried about
+  - Where are they spending their compute
+  - Concern about accuracy vs compute (what do they care about more)
+
+People wouldn't get the paper published if they used ML methods.
+
+What are the most popular tools:
+1. Get a list of the most popular tools
+2. Decide what metrics most important for those methods
+
+For next meeting - do time sensitive literature review:
+- last 5 years
+- what techniques are most popular
+- what pipelines do people trust
+  - what is the algorithm
+  - what is the codebase
+  - is it open source
+  - do they have access to it
+  - is there some part of the pipeline that isn't optimised
+    - why are they not using the optimised version?
+      - people aren't using them, not being cited
+      - is the whole community working on inertia
+
+Viable paper could be:
+- Here is a benchmarking system for all the methods
+- critique of current ml methods => validation
