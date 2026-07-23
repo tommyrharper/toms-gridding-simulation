@@ -25,6 +25,9 @@ gridding_sim = ["py.typed"]
 dev = [
     "pytest>=9.1.1",
 ]
+demo = [
+    "streamlit>=1.38",
+]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

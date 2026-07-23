@@ -12,6 +12,10 @@ wheels/
 # Personal setup
 .vscode/
 
+# Agent-skill symlinks some packages (e.g. streamlit) drop into .venv on install
+/.agents
+/.claude
+
 # Generated artifacts
 data/*
 !data/.gitkeep

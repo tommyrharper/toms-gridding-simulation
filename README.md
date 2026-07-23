@@ -16,7 +16,7 @@ uv sync
 |---|---|
 | `src/gridding_sim/` | Library: arrays, observe, simulate (DFT ground truth), imaging (grid+FFT), gridtools (kernels), diagnostics, plotting |
 | `configs/` | Antenna array `.cfg` files |
-| `scripts/` | Runnable demos / CLIs (`demo_observe.py`) |
+| `scripts/` | Runnable demos / CLIs (`demo_observe.py`, `demo_app.py` Streamlit UI, shared pipeline in `demo_core.py`) |
 | `data/` | Generated datasets (gitignored) |
 | `tests/` | Pytest suite |
 
@@ -32,6 +32,22 @@ uv run scripts/demo_observe.py
 If you see `ModuleNotFoundError: No module named 'gridding_sim'`, the demo
 script bootstraps `src/` automatically via `scripts/_repo_path.py`. Re-run
 `uv sync` once, then try the command again.
+
+## Interactive demo
+
+`scripts/demo_app.py` is a Streamlit front-end for `demo_observe.py`: sliders and
+buttons for every `DemoConfig` field, with a Generate button that runs the same
+observe -> DFT/FFT dirty-image pipeline and shows the resulting plots and stats.
+
+```sh
+uv sync --group demo
+uv run streamlit run scripts/demo_app.py
+```
+
+Generation isn't instant — FFT gridding is a pure-Python loop over every
+visibility, so large arrays / long durations / large npix can take up to a
+minute. The controls are batched behind the Generate button rather than
+recomputing on every slider tick.
 
 ## Testing
 
