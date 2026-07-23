@@ -57,6 +57,9 @@ with st.sidebar:
         index=["single", "random", "manual"].index(DEMO.sky_mode),
         horizontal=True,
     )
+    if sky_mode == "random":
+        if st.button("New random seed", use_container_width=True):
+            st.session_state.rng_seed = int(np.random.randint(0, 1_000_000))
 
     with st.form("controls"):
         radio_array = st.selectbox(
@@ -80,7 +83,15 @@ with st.sidebar:
         manual_sources: list[tuple[float, float, float]] = list(DEMO.manual_sources)
 
         if sky_mode in ("single", "random"):
-            flux = st.slider("flux [Jy]", 0.1, 10.0, DEMO.flux, step=0.1)
+            flux = st.slider(
+                "flux [Jy]", 0.1, 10.0, DEMO.flux, step=0.1,
+                disabled=(sky_mode == "random"),
+                help=(
+                    "Ignored in random mode — make_point_sources draws each "
+                    "source's flux from a fixed 0.5-5.0 Jy range there."
+                    if sky_mode == "random" else None
+                ),
+            )
         if sky_mode == "random":
             n_sources = st.slider("n_sources", 1, 50, DEMO.n_sources)
             st.number_input("rng seed", key="rng_seed", step=1)
@@ -93,11 +104,6 @@ with st.sidebar:
             manual_sources = [tuple(row) for row in edited.to_numpy(dtype=float)]
 
         submitted = st.form_submit_button("Generate", use_container_width=True)
-
-    if sky_mode == "random":
-        if st.button("New random seed", use_container_width=True):
-            st.session_state.rng_seed = int(np.random.randint(0, 1_000_000))
-            st.rerun()
 
 if submitted:
     cfg = DemoConfig(
