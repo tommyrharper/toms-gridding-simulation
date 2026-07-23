@@ -17,19 +17,28 @@ def require_visibilities(
         )
 
 
+def narrow_field_verdict(
+    w: npt.NDArray[np.float64], npix: int, cell: float
+) -> tuple[float, str]:
+    """Peak narrow-field phase error and a human verdict on whether w is safe to drop."""
+    dphi = w_term_error(w, npix, cell)
+    if dphi < 0.1:
+        msg = "negligible: safe to drop w (narrow-field OK)"
+    elif dphi < 1.0:
+        msg = "marginal: fine near the centre, errors grow toward the edge"
+    else:
+        msg = "w MATTERS: shrink npix*cell, or use w-projection"
+    return dphi, msg
+
+
 def check_narrow_field_approximation(
     w: npt.NDArray[np.float64], array: str, npix: int, cell: float
 ) -> None:
-    dphi = w_term_error(w, npix, cell)
+    dphi, msg = narrow_field_verdict(w, npix, cell)
     print(
         f'array = {array}, FoV = {npix * cell:.1f}", |w|max = {np.abs(w).max():3e} lambda'
     )
-    if dphi < 0.1:
-        print(" -> negligible: safe to drop w (narrow-field OK)")
-    elif dphi < 1.0:
-        print(" -> marginal: fine near the centre, errors grow toward the edge")
-    else:
-        print(" -> w MATTERS: shrink npix*cell, or use w-projection")
+    print(f" -> {msg}")
 
 
 def fft_residuals(
@@ -46,13 +55,21 @@ def fft_residuals(
     return d_sph, d_lm, vmax, inner
 
 
+def residual_stats(
+    residuals: dict[str, npt.NDArray[np.float64]],
+    inner: slice,
+) -> dict[str, dict[str, float]]:
+    """Inner-field max/rms error for each named residual image."""
+    out: dict[str, dict[str, float]] = {}
+    for name, d in residuals.items():
+        e = d[inner, inner]
+        out[name] = {"max": float(np.abs(e).max()), "rms": float(np.sqrt((e**2).mean()))}
+    return out
+
+
 def print_residual_stats(
     residuals: dict[str, npt.NDArray[np.float64]],
     inner: slice,
 ) -> None:
-    for name, d in residuals.items():
-        e = d[inner, inner]
-        print(
-            f"{name:13s}: inner-field error  "
-            f"max={np.abs(e).max():.2e}  rms={np.sqrt((e**2).mean()):.2e}"
-        )
+    for name, s in residual_stats(residuals, inner).items():
+        print(f"{name:13s}: inner-field error  max={s['max']:.2e}  rms={s['rms']:.2e}")
