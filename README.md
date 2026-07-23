@@ -16,11 +16,12 @@ uv sync
 |---|---|
 | `src/gridding_sim/` | Library: arrays, observe, simulate (DFT ground truth), imaging (grid+FFT), gridtools (kernels), diagnostics, plotting |
 | `configs/` | Antenna array `.cfg` files |
-| `scripts/` | Runnable demos / CLIs (`demo_observe.py`, `demo_app.py` Streamlit UI, shared pipeline in `demo_core.py`) |
+| `scripts/` | Runnable demos / CLIs (`demo_observe.py`, `demo_app.py` Streamlit UI, shared pipeline in `demo_core.py`, `demo_ml_step.py`) |
+| `ml/` | PyTorch MLP baseline: raw padded (u,v,V) visibilities -> flattened dirty image (foundation only — no training loop yet) |
 | `data/` | Generated datasets (gitignored) |
 | `tests/` | Pytest suite |
 
-**Later (not created yet):** `metrics/`, `ml/`, `benchmarks/`, `runs/`.
+**Later (not created yet):** `metrics/`, `benchmarks/`, `runs/`.
 
 ## Run the demo
 
