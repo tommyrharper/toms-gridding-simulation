@@ -69,6 +69,10 @@ def make_example(
     """
     V = point_source_vis(u, v, sources)
     x = pad_visibilities(u, v, V, max_vis)
-    img = dirty_image(u, v, V, npix, cell_arcsec)
+
+    u_arr = np.asarray(u)
+    v_arr = np.asarray(v)
+    n = min(len(u_arr), max_vis)
+    img = dirty_image(u_arr[:n], v_arr[:n], V[:n], npix, cell_arcsec)
     y = torch.from_numpy(np.asarray(img, dtype=np.float32).ravel())
     return x, y

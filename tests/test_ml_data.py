@@ -70,3 +70,20 @@ def test_make_example_target_matches_dirty_image_ground_truth():
     assert y.shape == (npix * npix,)
     assert y.dtype == torch.float32
     assert np.allclose(y.numpy(), expected)
+
+
+def test_make_example_target_matches_truncated_input_when_oversized():
+    rng = np.random.default_rng(1)
+    u = rng.uniform(-50, 50, 20)
+    v = rng.uniform(-50, 50, 20)
+    sources = [(0.0, 0.0, 1.0)]
+    npix, cell = 8, 1.0
+    max_vis = 10
+
+    x, y = make_example(u, v, sources, max_vis=max_vis, npix=npix, cell_arcsec=cell)
+
+    V = point_source_vis(u[:max_vis], v[:max_vis], sources)
+    expected = dirty_image(u[:max_vis], v[:max_vis], V, npix, cell).astype(np.float32).ravel()
+
+    assert x.shape == (max_vis, N_FEATURES)
+    assert np.allclose(y.numpy(), expected)
