@@ -1,4 +1,9 @@
-"""Sanity checks / diagnostic prints for an observation and its imaging setup."""
+"""Sanity checks / diagnostics for an observation and its imaging setup.
+
+Each check has a print-based variant for CLI use and a plain data-returning
+variant (`narrow_field_verdict`, `residual_stats`) for callers, like the
+Streamlit app, that need structured results instead of parsed stdout.
+"""
 
 import numpy as np
 import numpy.typing as npt

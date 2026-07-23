@@ -1,4 +1,4 @@
-"""Tunable parameters for scripts/demo_observe.py.
+"""Tunable parameters shared by scripts/demo_observe.py and scripts/demo_app.py.
 
 Edit the values on DEMO below to change the demo observation — array,
 pointing, integration time, imaging grid, and sky model — without touching
@@ -63,7 +63,7 @@ class DemoConfig:
     # Sky model — "single" | "random" | "manual"
     sky_mode: str = "single"
     n_sources: int = 5  # used when sky_mode == "random"
-    flux: float = 2.0  # Jy, used when sky_mode in {"single", "random"}
+    flux: float = 2.0  # Jy, used when sky_mode == "single" (random draws from a fixed 0.5-5.0 Jy range instead)
     manual_sources: list[tuple[float, float, float]] = field(
         default_factory=lambda: [(0.0, 0.0, 2.0), (5.0, -3.0, 1.0)]
     )  # (x_arcsec, y_arcsec, flux_Jy), used when sky_mode == "manual"
