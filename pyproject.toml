@@ -9,6 +9,7 @@ dependencies = [
     "matplotlib>=3.11.1",
     "numpy>=2.5.1",
     "scipy>=1.15.0",
+    "torch>=2.13.0",
 ]
 
 [build-system]
@@ -30,4 +31,4 @@ demo = [
 ]
 
 [tool.pytest.ini_options]
-pythonpath = ["src"]
+pythonpath = ["src", "."]
