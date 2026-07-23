@@ -1,0 +1,2 @@
+*.ipynb filter=nbstripout diff=jupyternotebook merge=jupyternotebook
+*.zpln filter=nbstripout
